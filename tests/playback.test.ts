@@ -148,16 +148,25 @@ describe('accessible shared playback controls', () => {
     expect(controls({ currentTime: DURATION })).toMatch(/aria-label="Next train"[^>]*disabled=""/);
   });
 
-  it('keeps the action bar, phase, countdown and range visible above the collapsed timetable', () => {
+  it('keeps time, Play, Next train, speed and timeline outside closed advanced controls', () => {
     const markup = controls();
     const detailsStart = markup.indexOf('<details');
+    const detailsEnd = markup.indexOf('</details>', detailsStart) + '</details>'.length;
     expect(detailsStart).toBeGreaterThan(0);
-    const alwaysVisible = markup.slice(0, detailsStart);
-    for (const label of ['Play', 'Next train', 'Replay arrival', 'Add arrival', 'Speed', 'Approaching', '00:20']) expect(alwaysVisible).toContain(label);
+    expect(detailsEnd).toBeGreaterThan(detailsStart);
+    const advanced = markup.slice(detailsStart, detailsEnd);
+    const alwaysVisible = markup.slice(0, detailsStart) + markup.slice(detailsEnd);
+    for (const label of ['Time period', 'Current time', 'Play', 'Next train', 'Speed', '00:20']) expect(alwaysVisible).toContain(label);
+    expect(alwaysVisible).toContain('type="time"');
+    expect(alwaysVisible).toContain('step="1"');
     expect(alwaysVisible).toContain('type="range"');
-    expect(markup.slice(detailsStart)).toMatch(/^<details[^>]*><summary[^>]*>/);
-    expect(markup.slice(detailsStart).split('>')[0]).not.toContain('open');
-    expect(markup.slice(detailsStart)).toContain('Train timetable');
-    expect(markup.slice(detailsStart)).toContain('train-marker-train-6');
+    expect(markup.match(/data-testid="next-train"/g)).toHaveLength(1);
+    expect(advanced).not.toContain('data-testid="next-train"');
+    expect(advanced).not.toContain('data-testid="timeline"');
+    expect(alwaysVisible).not.toContain('Replay arrival');
+    expect(alwaysVisible).not.toContain('Add arrival');
+    expect(advanced).toMatch(/^<details[^>]*><summary[^>]*>/);
+    expect(advanced.split('>')[0]).not.toContain('open');
+    for (const label of ['More controls', 'Replay arrival', 'Add arrival', 'Approaching', 'Train timetable', 'train-marker-train-6']) expect(advanced).toContain(label);
   });
 });

@@ -1,6 +1,22 @@
 import type {Language} from '../domain/types';
 import {translate} from './index';
 const id:Record<string,string>={
+ 'Performance so far':'Kinerja sejauh ini','Main navigation':'Navigasi utama','Business':'Usaha','Demo':'Demo','Station playground':'Simulasi stasiun',
+ 'Place a shop. Watch the rush. Test the opportunity.':'Tempatkan toko. Lihat arus ramai. Uji peluangnya.',
+ 'Plan':'Rencana','Add shop':'Tambah toko','Live station summary':'Ringkasan stasiun langsung',
+ 'Your visits':'Kunjungan toko Anda','Sales so far':'Penjualan sejauh ini','Your sales so far':'Penjualan toko Anda',
+ 'Full analysis':'Analisis lengkap','Business tools':'Alat usaha','Compare tools':'Alat perbandingan',
+ 'Opportunity':'Peluang','Operating plan':'Rencana operasi','Shops':'Toko','Locations':'Lokasi',
+ 'Impact & plans':'Dampak & rencana','Station report':'Laporan stasiun','Camera view':'Sudut pandang',
+ 'View':'Tampilan','Floors':'Lantai','Exit explore':'Keluar jelajah','Selection summary':'Ringkasan pilihan',
+ 'Close summary':'Tutup ringkasan','Focus shop':'Fokus toko','Business details':'Detail usaha','Add shop here':'Tambah toko di sini',
+ 'Compare plans':'Bandingkan rencana','Watch the station come alive':'Lihat stasiun bergerak',
+ 'Build your shop concept':'Bangun konsep toko Anda','Show the business case':'Tunjukkan peluang usahanya',
+ 'Use the bottom bar: choose morning, lunch or evening, then Next train. Quality sits beside Operator / Tenant.':'Gunakan bar bawah: pilih pagi, siang, atau sore, lalu Kereta berikutnya. Kualitas ada di samping Operator / Tenant.',
+ 'Choose Add shop, drag a category into a highlighted unit, then click the shop for a summary. Focus shop brings you closer.':'Pilih Tambah toko, seret kategori ke unit yang ditandai, lalu klik toko untuk ringkasan. Fokus toko mendekatkan tampilan.',
+ 'Open Business to test prices, staffing and costs. Compare shows clear impacts and keeps your saved plans.':'Buka Usaha untuk menguji harga, staf, dan biaya. Bandingkan menampilkan dampak yang jelas dan rencana tersimpan.',
+ 'Try it':'Coba sekarang',
+
  'Plan actions':'Tindakan rencana',
  'Business opportunity':'Peluang usaha','Demo route':'Alur demo','Turn station movement into a business case.':'Ubah arus stasiun menjadi peluang usaha.',
  'Simulated outlook':'Proyeksi simulasi','Watch a train':'Lihat kereta','Find an opportunity':'Cari peluang','Read the impact':'Baca dampak',

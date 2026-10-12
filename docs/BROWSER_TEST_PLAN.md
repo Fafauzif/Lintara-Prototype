@@ -1,43 +1,41 @@
-# Revision 1.2 browser rehearsal
+# Revision 1.3 browser acceptance plan
 
-Before using this source in a live demonstration:
+This is a rehearsal plan, not a completed browser-test record. The available cloud browser disabled WebGL and blocked local preview access; neither limitation was bypassed. Controlled component callbacks, server-rendered markup, TypeScript and Vitest do not establish actual focus, responsive pixels, pointer/touch behavior, WebGL appearance or GPU/FPS.
 
-- At320/375/400/768/1280/1920px, find Quality beside roles and the header Next train without opening Layers. Verify visible labels, focus, 44px targets and no horizontal overflow; test tenant shop selection.
-- Use both header and command-bar Next train. Verify approach/play, replay, no plan mutation and sensible end-of-hour disabled state.
-- Select morning/lunch/evening and start hours05/08/18/22; edit exact clock time and scrubber. Confirm scenario demand changes, layouts stay usable, and all inputs/timetables/reports follow the selected hour.
-- Opportunity: edit/apply assumptions; find/apply a legal option and Undo; change hour/tenant or leave while searching to verify stale results never apply. Try zero basket/margin/wage/probability and high costs.
-- Impacts: inspect negative sales, favorable cost/wait reductions and neutralzero in EN/ID; ensure no double minus or misleading unconditional stress claim.
-- Tenant privacy: selected business only in page, sensitivity and downloaded/printed brief. Check all report downloads/pop-up behavior in the browser.
-- Run the original interaction/device checks below. Source callback and server-render checks do not replace them.
+Use `npm ci`, `npm run dev` and the printed local URL in a permitted browser. Test 1920×1080, 1366×768, 768px tablet landscape and 390×844 / 430×932 phones. Also inspect 320px width and 200% browser zoom. The application should not need a runtime CDN, remote fonts or remote models.
 
-# Browser acceptance plan
+## Station layout and discoverability
 
-This plan is supplied for a permitted local browser; it is not a completed browser-test record. The execution browser blocked the local preview and file URLs. Do not interpret TypeScript/Vitest success as evidence for the tests below.
+1. Find the three main destinations: Station, Business and Compare. Quality must remain visibly labeled beside Operator / Tenant, and Save must be discoverable in the header. Check labels, keyboard focus and readable control targets without horizontal page overflow.
+2. At desktop sizes, verify the station canvas dominates the working area and the Station page needs no vertical page scroll for normal playback. The compact live metrics must not compete with the canvas or imply a complete-hour forecast. Full analysis belongs in Business / Compare.
+3. Find Time period, Current time, Play/Pause, Next train, speed, arrival status and the timeline in the single bottom simulation bar. There must be no duplicate Next train in the header. At phone widths, verify the controls wrap clearly, remain reachable and do not cover focused content.
+4. Open More controls. Confirm its upward panel remains bounded within the viewport, scrolls internally when necessary and closes with Escape while returning focus to its summary. Replay arrival, Add arrival, Start hour and timetable must remain reachable.
+5. Click a shop. Confirm the quick summary appears without changing camera position or opening the full inspector. Check live queue versus explicitly labeled selected-hour forecast. Use Focus shop for a close frame and Business details for the full inspector. Close the inspector without losing the selected shop or plan.
+6. Use Hall, Platforms and Whole station across wide/narrow canvas sizes. Check close framing is useful, reset/orbit/pan/zoom work and selected-floor visibility remains coherent. Pointer dragging the scene must not accidentally select a shop.
 
-Use `npm ci`, `npm run dev`, then the printed local URL. Inspect at 1920×1080, 1366×768, 390×844, 430×932 and tablet landscape. Browser network requests must stay on the app origin; no runtime CDN/fonts/models.
+## Time, train and placement
 
-1. Opening: verify the elevated commercial hall and tracks/platforms, useful people moving, storefront details and original identity. The world dominates the workspace.
-2. Camera: orbit, pan, zoom and named presets; keyboard alternatives; resets; scene drag does not accidentally select. Floor/roof/cutaway/transparency retain coherent geometry.
-3. Select each shop/unit/gate/train/screen/zone and match the inspector/list selection. Tenant mode must not reveal other named tenants' financial/staff details.
-4. Place all four categories via click and drag palette. Verify small/medium/large, cardinal rotation, occupied/undersized/disallowed rejection, cancel, confirmation, move, remove, undo, redo and branch history.
-5. Pause freezes both people/train and time; speed and seek recreate the corresponding queue/service/sales state. Revisit a prior instant. Chart cursor, header and inspector match.
-6. Arrival creates a finite train wave; delay shifts the selected schedule; rain modifies approach/dwell; central route closure reroutes without stranding; one-worker absence changes service/cost. Repeated same-time event is rejected. Undo cancels visible and analytical effect.
-7. Operator Overview/Tenants/Staffing filters, table focus, settings and reports work; changing hours/service/basket/margin/rent actually changes model output.
-8. Tenant prospective shortlist compares the same seeded demand and concept, with exposure/entries/fit/dwell/capacity/cost tradeoffs. Save/reopen shortlist; export own-only report. My business chosen tenant, staffing and campaigns are private scoped.
-9. Campaign screen/time/objective/budget/creative preview, save/edit/duplicate/archive and on/off comparison; cost can exceed benefit. Verify exposure is not displayed as proven attention or causal sales.
-10. Save/reopen/duplicate/delete/recover plans; valid/invalid/oversized import; denied local storage; reset preserves saved plans. Exports use current window, settings and model values; print excludes controls and competing tenant data in tenant mode.
-11. EN/ID labels, errors, tooltips and printable reports; IDR/WIB; large/negative/zero-denominator metrics; keyboard tab/focus/escape/modal trap.
-12. On phone verify lightweight preview, readable metrics/trend, role insight and copied bundled-preset link with success/error. Confirm `world`/Three and StationScene chunks are not requested at phone width. WebGL denial/context loss gives useful preserved analysis and retry.
-13. Performance: normal/stress walkthrough, 30-second frame-time samples and ten placement/seek/floor/reset cycles. Record real GPU, RAM, OS, viewport, pixel ratio, mode, frame-time median/p95, memory and renderer counts. An offscreen/software-rendered browser is separate evidence from the intended integrated-GPU laptop.
-14. Capture actual final desktop station/tenant/location/campaign/mobile applications after passing checks; substitute these for source-specification guide pages if required. Re-export the same16-slide guide and inspect every page.
+7. Select all 18 hours from 05 through 22, including named Morning rush / Lunch hour / Evening rush. Test exact clock seconds and timeline seeking. Confirm the selected window, timetable, reports, demand profile and financial calculations agree. Changing the hour must preserve relative plan windows.
+8. Next train and Replay arrival must seek to an approach and play without adding passengers or changing the plan. Verify the end-of-hour disabled state and outside-hour schedule handling. Add arrival must create a legal finite wave, play it and remain undoable.
+9. Open Add shop. Drag each category into a legal unit in one release; also test category selection followed by a listed/map unit and keyboard alternatives. Successful placement and cancellation must close the catalog. Its Close/Cancel control must stay visible while scrolling.
+10. Verify a single snapped ghost, validation reasons, small/medium/large sizing, R rotation, Escape cancellation, occupied/undersized/disallowed/protected rejection, move, remove, Undo and Redo. Camera position must remain stable throughout placement and immediately after the drop.
+11. Pause must freeze people, trains and time. Changing speed and seeking must reconstruct the corresponding queue/service/sales state. Chart cursor, clock, quick summary and inspector must use the same instant. Replay a prior instant and check deterministic results.
+12. Delay, rain, route closure and worker absence must affect the relevant schedule, route or service/cost state. Reject repeated same-time events. Undo must restore visible and analytical results.
 
-## Revision 1.1 checks
+## Business case and comparison
 
-- Verify close Hall framing and direct Hall/Platforms/Whole station controls across laptop, tablet and phone dimensions.
-- Drag each category into valid, occupied, undersized and protected targets; confirm one ghost, exact reason, stable camera and one Undo entry. Test tap/click and keyboard alternatives, move, R and Escape.
-- Compare Lite/Standard/High eligible/submitted counts at the same paused instant; measure actual frame times, memory and quality-switch disposal. Test busy and large imported scenarios.
-- Next train and Replay must seek before approach and play without changing the plan. Outside-hour trains cannot replay. Added arrivals must show a safe platform slot, commit and play.
-- Timetable details start collapsed; action bar, clock, countdown and slider stay visible. Check sticky controls never cover focused placement targets.
-- Force or encounter WebGL loss through a permitted test environment; verify live 2D selection/placement and all eligible agents remain available.
-- On phones, verify map zoom/Fit controls stay inside the canvas host, sheet details do not block close/cancel, and R rotates placement without resetting framing.
-- Verify role transitions clear transient placement; an owner can move their own shop but cannot add a new business through a forged drop payload.
+13. Business subtabs must keep Opportunity, Operating plan (My business in Tenant mode), Locations, Staffing and Campaigns together; operators also have Shops. Compare must separate Impact & plans from Station report. Verify navigation closes transient Station panels and does not accidentally change the scenario.
+14. Edit and Apply basket, margin, wage, purchase probability and occupancy assumptions. Test zero basket/margin/probability, zero wage and high costs. Break-even must handle nonpositive gross margin without inventing a finite answer. Service capacity must remain an estimate, not achieved sales.
+15. Find an opportunity, inspect tested legal unit/staff combinations, apply one and Undo. Change hour/tenant or leave during a search; obsolete results must never apply. A search with no positive alternative must say so. Neighboring shops and demand must be preserved.
+16. Compare Baseline, Proposed and Stress. Verify clearer explanations for lower sales, favorable cost/wait reductions and neutral zero in EN/ID. Avoid double minus signs, negative zero or a stress claim for an intervention that could not be added.
+17. Confirm location shortlist and campaign edits, save/edit/duplicate/archive, on/off comparison and reports. Exposure must not be presented as proven attention or causal sales; campaign cost may exceed benefit.
+18. Tenant mode must reveal only the selected shop's individual financial/staff details, sensitivities and downloaded/printed brief. Check station aggregate versus private business data, selection changes, forged placement payload guards and role transitions.
+
+## Persistence, fallback and device performance
+
+19. Save/reopen/duplicate/delete/recover plans; valid/invalid/oversized import; denied local storage; reset preserving saved plans. Reports must use the selected hour and current model values. Browser downloads/print must work, exclude controls and avoid competing tenant details in tenant mode.
+20. Test EN/ID, IDR/WIB, long labels, errors, large/negative/zero-denominator metrics, tab order, visible focus, Escape and modal focus behavior. Persistent controls must not obscure focused content.
+21. Phones should start with live 2D and avoid importing the desktop StationScene/world chunks. Verify map fit/zoom/pan/pinch, selection, catalog drop/tap placement and readable business details. WebGL denial/context loss must preserve the plan and analysis with a useful 2D fallback/retry.
+22. At the same paused instant and floor, compare Lite / Standard / High model-present, floor-eligible and submitted counts. Quality must not sample the crowd or change financial results. Exercise repeated quality changes, seeks, hidden/visible wake and overflow fallback.
+23. On actual intended devices, record GPU, RAM, OS, browser, viewport, DPR, preset, renderer counts, memory and 30-second frame-time median/p95. Repeat Normal, Busy and a large wave plus ten placement/seek/floor/reset cycles. Software/offscreen rendering is separate evidence from an integrated-GPU laptop.
+24. Capture actual final desktop and phone applications only after checks pass. The unchanged identity guide contains original application specifications; it is not a set of revised browser captures. Update that guide only if new screenshots are specifically required.

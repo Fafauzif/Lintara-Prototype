@@ -3,8 +3,10 @@ import { CATEGORIES, SCREENS, UNITS } from '../data/station';
 import { shopTransform } from '../domain/shopGeometry';
 import { translateError } from '../i18n/errors';
 import type { Category, SceneProps, Snapshot, Tenant } from '../domain/types';
-import { agentInFloor, fitMapCamera, hitStationAt, mapToWorld, placementAt, trainMapPose, worldToMap } from './mapProjection';
+import { agentInFloor, hitStationAt, mapToWorld, placementAt, trainMapPose, worldToMap } from './mapProjection';
 import type { MapBounds, MapCamera, MapPlacement, MapPoint, MapScreenPoint } from './mapProjection';
+import { fitBoundsMapCamera, mapFrameBounds, resizeMapCamera, shopCameraFrame } from './cameraFraming';
+import { cameraFocusAllowed } from './quality';
 import './station-map.css';
 
 const CLOTHES=['#657F9C','#BA8971','#779A8B','#A99C83','#566675','#A09FAE','#D1AB72','#8B9991'];
@@ -23,9 +25,10 @@ export default function StationMap(props:SceneProps){
     const ctx=canvas.getContext('2d',{alpha:false}),back=background.getContext('2d',{alpha:false});
     if(!ctx||!back){const message='A 2D drawing surface is unavailable.';setError(message);latest.current.onError?.(message);return;}
     canvas.tabIndex=0;canvas.setAttribute('role','application');canvas.setAttribute('aria-roledescription','interactive station map');container.prepend(canvas);
-    let width=0,height=0,dpr=1,camera:MapCamera=fitMapCamera(1,1,'overview'),baseScale=1;
+    let activeCameraBounds:MapBounds=mapFrameBounds(latest.current.cameraView,latest.current.floor);
+    let width=0,height=0,dpr=1,camera:MapCamera=fitBoundsMapCamera(activeCameraBounds,1,1),baseScale=1;
     let mounted=true,visible=!document.hidden,intersecting=true,raf=0,timer=0,dirty=true,staticDirty=true,ready=false;
-    let lastProps:SceneProps|undefined,lastReset=-1,lastView='',lastFloor='',lastQuality='',lastFrameTime=-Infinity;
+    let lastProps:SceneProps|undefined,lastReset=-1,lastView='',lastFloor='',lastQuality='',lastFrameTime=-Infinity,lastFocusRevision:number|undefined,wasPlacing=false,dropCommitted=false;
     let lastSnapshot:Snapshot|undefined,lastResult=latest.current.result,lastTime=NaN;
     let hover:MapPlacement|null=null,hoverPoint:MapPoint|null=null,lastHover='',keyboardUnit=-1,dragCategory:Category|null=null;
     const pointers=new Map<number,MapScreenPoint>();
@@ -40,7 +43,8 @@ export default function StationMap(props:SceneProps){
     };
     const invalidate=(station=false)=>{dirty=true;staticDirty=staticDirty||station;if(mounted&&visible&&!raf){window.clearTimeout(timer);timer=0;raf=requestAnimationFrame(render);}};
     requestDraw.current=()=>invalidate();
-    const reset=()=>{const p=latest.current;camera=fitMapCamera(width,height,p.cameraView,p.floor);baseScale=camera.scale;invalidate(true);};
+    const setCameraBounds=(bounds:MapBounds)=>{activeCameraBounds=bounds;camera=fitBoundsMapCamera(bounds,width,height);baseScale=camera.scale;invalidate(true);};
+    const reset=()=>{const p=latest.current;setCameraBounds(mapFrameBounds(p.cameraView,p.floor));};
     resetAction.current=reset;
     const zoom=(factor:number,anchor:MapScreenPoint={x:width/2,y:height/2})=>{
       const before=mapToWorld(anchor,camera,viewport(width,height));
@@ -49,14 +53,14 @@ export default function StationMap(props:SceneProps){
     };
     zoomAction.current=factor=>zoom(factor);
     const resize=()=>{
-      const rect=container.getBoundingClientRect();if(rect.width<1||rect.height<1)return;
+      const rect=container.getBoundingClientRect();if(!Number.isFinite(rect.width)||!Number.isFinite(rect.height)||rect.width<1||rect.height<1)return;
       const newWidth=Math.round(rect.width),newHeight=Math.round(rect.height),p=latest.current;
       const newDpr=Math.min(window.devicePixelRatio||1,p.quality==='high'?1.5:p.quality==='balanced'?1:.75);
       if(width===newWidth&&height===newHeight&&dpr===newDpr)return;
       const first=width===0;height=newHeight;width=newWidth;dpr=newDpr;
       canvas.width=background.width=Math.max(1,Math.round(width*dpr));canvas.height=background.height=Math.max(1,Math.round(height*dpr));
-      const fitted=fitMapCamera(width,height,p.cameraView,p.floor);
-      if(first)camera=fitted;else camera.scale*=fitted.scale/baseScale;
+      const fitted=fitBoundsMapCamera(activeCameraBounds,width,height);
+      if(first)camera=fitted;else camera=resizeMapCamera(camera,baseScale,fitted.scale);
       baseScale=fitted.scale;invalidate(true);
     };
     const setupWorld=(target:CanvasRenderingContext2D)=>target.setTransform(dpr*camera.scale,0,0,dpr*camera.scale,dpr*(width/2-camera.centerX*camera.scale),dpr*(height/2-camera.centerZ*camera.scale));
@@ -176,12 +180,25 @@ export default function StationMap(props:SceneProps){
           lastProps=p;canvas.setAttribute('aria-label',p.language==='id'?'Peta interaktif Stasiun Sudirman. Seret untuk menggeser, cubit atau gulir untuk memperbesar. U memilih unit, Enter membuka atau menempatkan toko, tombol panah menggeser, R mengatur ulang.':'Interactive Sudirman station map. Drag to pan; pinch or scroll to zoom. U browses units, Enter selects or places a shop, arrow keys pan, R resets.');
           const category=dragCategory??p.placement;if(hoverPoint&&category&&p.floor!=='platform')tellHover(placementAt(hoverPoint,p.scenario,category,p.placementSize,p.rotation,p.movingId));else if(!category||p.floor==='platform')tellHover(null);
         }
-        if(lastReset!==p.cameraReset||lastView!==p.cameraView||lastFloor!==p.floor){lastReset=p.cameraReset;lastView=p.cameraView;lastFloor=p.floor;reset();}
+        const placing=!!p.placement||!!dragCategory,focusAllowed=cameraFocusAllowed(placing,wasPlacing&&!placing,dropCommitted);
+        if(lastReset!==p.cameraReset||lastView!==p.cameraView||lastFloor!==p.floor){lastReset=p.cameraReset;lastView=p.cameraView;lastFloor=p.floor;if(focusAllowed)reset();}
+        if(lastFocusRevision!==p.cameraFocusRevision){lastFocusRevision=p.cameraFocusRevision;
+          if(focusAllowed&&p.cameraFocus){
+            const tenant=p.scenario.tenants.find(t=>t.id===p.cameraFocus),unit=UNITS.find(u=>u.id===(tenant?.unitId??p.cameraFocus));
+            const pose=tenant&&unit?shopTransform(unit,tenant):null;
+            const bounds=selectedBounds(p.cameraFocus);
+            if(unit)setCameraBounds(shopCameraFrame({x:pose?.centerX??unit.x,y:1,z:pose?.centerZ??unit.z}).bounds);
+            else if(p.cameraFocus.startsWith('TRAIN')||p.cameraFocus.startsWith('ZPLATFORM'))setCameraBounds(mapFrameBounds('platform','platform'));
+            else if(p.cameraFocus==='ZHALL')setCameraBounds(mapFrameBounds('hall','hall'));
+            else if(bounds)setCameraBounds(shopCameraFrame({x:(bounds.minX+bounds.maxX)/2,y:1,z:(bounds.minZ+bounds.maxZ)/2}).bounds);
+          }
+        }
         if(lastQuality!==p.quality){lastQuality=p.quality;resize();}
         const interval=p.quality==='low'?1000/24:p.quality==='balanced'?1000/30:1000/45;
         const changedResult=lastResult!==p.result,changedTime=lastTime!==p.clock.current;
         if(!lastSnapshot||changedResult||(changedTime&&(!p.clock.playing||now-lastFrameTime>=interval||Math.abs(lastTime-p.clock.current)>1))){lastSnapshot=p.result.snapshot(p.clock.current);lastTime=p.clock.current;lastResult=p.result;lastFrameTime=now;dirty=true;}
         if(dirty&&lastSnapshot){if(staticDirty){drawBackground();staticDirty=false;}drawSnapshot(lastSnapshot);dirty=false;if(!ready){ready=true;p.onReady?.({drawCalls:1,triangles:0});}}
+        wasPlacing=placing;if(!placing)dropCommitted=false;
         if(p.clock.playing){if(!raf)raf=requestAnimationFrame(render);}else{timer=window.setTimeout(()=>{timer=0;if(mounted&&visible&&!raf)raf=requestAnimationFrame(render);},160);}
       }catch(e){const message=e instanceof Error?e.message:'Unable to draw the station map.';setError(message);latest.current.onError?.(message);mounted=false;}
     }
@@ -189,7 +206,7 @@ export default function StationMap(props:SceneProps){
       const p=latest.current;hoverPoint=at;if(category&&p.floor!=='platform'){const next=placementAt(at,p.scenario,category,p.placementSize,p.rotation,p.movingId);tellHover(next);canvas.style.cursor=next.valid?'copy':'not-allowed';}else{tellHover(null);canvas.style.cursor=hitStationAt(at,p.scenario,p.floor,lastSnapshot)?'pointer':'grab';}invalidate();
     };
     const activate=(at:MapPoint,category:Category|null=dragCategory??latest.current.placement)=>{
-      const p=latest.current;if(category&&p.floor!=='platform'){const check=placementAt(at,p.scenario,category,p.placementSize,p.rotation,p.movingId);tellHover(check);if(check.unitId&&check.valid)p.onPlace(check.unitId,category);}
+      const p=latest.current;if(category&&p.floor!=='platform'){const check=placementAt(at,p.scenario,category,p.placementSize,p.rotation,p.movingId);tellHover(check);if(check.unitId&&check.valid){dropCommitted=true;p.onPlace(check.unitId,category);}}
       else{const id=hitStationAt(at,p.scenario,p.floor,lastSnapshot);if(id)p.onSelect(id);}invalidate();
     };
     const down=(event:PointerEvent)=>{

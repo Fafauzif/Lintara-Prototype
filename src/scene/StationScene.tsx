@@ -6,6 +6,8 @@ import { CATEGORIES, UNITS } from '../data/station';
 import { Assets, updateLabel, updateTranslations } from './assets';
 import { buildStation } from './station';
 import { buildTenants, placementPreviewTarget, placementTargetStatus, setPlacement } from './tenants';
+import { cameraFrame, cameraFrustum, shopCameraFrame } from './cameraFraming';
+import type { CameraFrame } from './cameraFraming';
 import { cameraFocusAllowed, createSnapshotCache, CROWD_CHUNK, decodePlacementCategory, eligibleCrowd, growCrowdCapacity, MAX_CROWD_CAPACITY, qualitySettings } from './quality';
 
 const clothes=['#657F9C','#BA8971','#779A8B','#A99C83','#566675','#A09FAE','#D1AB72','#8B9991'];
@@ -54,20 +56,24 @@ export default function StationScene(props:SceneProps){
   const selection=new THREE.Group();scene.add(selection);
   const selectMaterial=new THREE.MeshBasicMaterial({color:'#F47B20',transparent:true,opacity:.75,depthWrite:false});assets.materials.set('selected',selectMaterial);
   const ring=new THREE.Mesh(assets.geometry(new THREE.RingGeometry(.91,1,48)),selectMaterial);ring.rotation.x=-Math.PI/2;selection.add(ring);selection.visible=false;
-  let active=true,intersectionVisible=true,contextLost=false,frame=0,raf=0,lastReady=false,width=0,height=0,scenarioKey=JSON.stringify(latest.current.scenario.tenants),lastQuality='',lastView='',lastReset=-1,lastSelected:string|null=null,lastPlacement='',lastShell='',lastLanguage='';
+  let active=true,intersectionVisible=true,contextLost=false,frame=0,raf=0,lastReady=false,width=0,height=0,scenarioKey=JSON.stringify(latest.current.scenario.tenants),lastQuality='',lastView='',lastCameraFloor='',lastReset=-1,lastSelected:string|null=null,lastFocusRevision:number|undefined,lastPlacement='',lastShell='',lastLanguage='';
   let lastTenantSource=latest.current.scenario.tenants,lastFrameProps:SceneProps|null=null,renderDirty=true,wasPlacing=false,dropCommitted=false;
   let cameraTween:{fromPos:THREE.Vector3;fromTarget:THREE.Vector3;toPos:THREE.Vector3;toTarget:THREE.Vector3;fromZoom:number;toZoom:number;start:number}|null=null;
   const snapshotCache=createSnapshotCache();let lastSnapshot:Snapshot|null=null,lastCrowdSnapshot:Snapshot|null=null,lastCrowdFloor='',lastCrowdAnimated=false,lastHeatmap=false,visibleAgents:AgentSample[]=[];
   const mouse=new THREE.Vector2(),raycaster=new THREE.Raycaster();let pointerStart:THREE.Vector2|null=null,hoverUnit:string|null=null,lastHover='',dragActive=false,pointerOverCanvas=false;
-  const resize=()=>{const r=container.getBoundingClientRect();if(r.width<1||r.height<1)return;const w=Math.round(r.width),h=Math.round(r.height);if(width===w&&height===h)return;width=w;height=h;renderer.setSize(w,h,false);const span=Math.max(50,83*h/w);camera.left=-span*w/h/2;camera.right=span*w/h/2;camera.top=span/2;camera.bottom=-span/2;camera.updateProjectionMatrix();renderDirty=true;};
+  let activeCameraFrame=cameraFrame(latest.current.cameraView,latest.current.floor);
+  const updateFrustum=()=>{Object.assign(camera,cameraFrustum(activeCameraFrame,width,height));camera.updateProjectionMatrix();renderDirty=true;};
+  // Changing the aspect adjusts the frame basis only: orbit, target and user zoom stay intact.
+  const resize=()=>{const r=container.getBoundingClientRect();if(!Number.isFinite(r.width)||!Number.isFinite(r.height)||r.width<1||r.height<1)return;const w=Math.round(r.width),h=Math.round(r.height);if(width===w&&height===h)return;width=w;height=h;renderer.setSize(w,h,false);updateFrustum();};
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
   const moveCamera=(target:THREE.Vector3,offset:THREE.Vector3,zoom:number)=>{const pos=target.clone().add(offset);renderDirty=true;if(reducedMotion()){camera.position.copy(pos);controls.target.copy(target);camera.zoom=zoom;camera.updateProjectionMatrix();controls.update();return;}cameraTween={fromPos:camera.position.clone(),fromTarget:controls.target.clone(),toPos:pos,toTarget:target,fromZoom:camera.zoom,toZoom:zoom,start:performance.now()};};
-  const preset=(view:string)=>{
-   if(view==='hall')moveCamera(new THREE.Vector3(0,1,-4),new THREE.Vector3(23,25,28),1.5);
-   else if(view==='platform')moveCamera(new THREE.Vector3(0,0,13),new THREE.Vector3(32,36,39),1.2);
-   else if(view==='top')moveCamera(new THREE.Vector3(0,0,3),new THREE.Vector3(.01,75,.01),1);
-   else moveCamera(new THREE.Vector3(0,1,3),new THREE.Vector3(38,60,49),1);
+  const moveFrame=(next:CameraFrame)=>{
+   const visibleHalfHeight=camera.top/camera.zoom;activeCameraFrame=next;updateFrustum();
+   // Preserve the visible scale at the beginning of the transition, then ease toward its new frame.
+   camera.zoom=camera.top/visibleHalfHeight;camera.updateProjectionMatrix();
+   moveCamera(new THREE.Vector3(next.target.x,next.target.y,next.target.z),new THREE.Vector3(next.offset.x,next.offset.y,next.offset.z),1);
   };
+  const preset=(view:SceneProps['cameraView'])=>moveFrame(cameraFrame(view,latest.current.floor));
   const cancelTween=()=>{cameraTween=null;renderDirty=true;};controls.addEventListener('start',cancelTween);
   const freezeCamera=()=>{
    cameraTween=null;controls.enabled=false;
@@ -145,10 +151,15 @@ export default function StationScene(props:SceneProps){
     lastQuality=p.quality;const quality=qualitySettings(p.quality);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,quality.pixelRatio));renderer.shadowMap.enabled=quality.shadows;sun.shadow.mapSize.set(quality.shadowMapSize,quality.shadowMapSize);sun.shadow.map?.dispose();sun.shadow.map=null;renderer.shadowMap.needsUpdate=true;
     bodyGeometry.dispose();headGeometry.dispose();bodyMaterial.dispose();headMaterial.dispose();bodyGeometry=new THREE.CapsuleGeometry(.16,.64,quality.capsuleSegments,quality.radialSegments);headGeometry=new THREE.SphereGeometry(1,quality.headWidthSegments,quality.headHeightSegments);bodyMaterial=personMaterial('#ffffff',quality.unlit);headMaterial=personMaterial('#D4B99A',quality.unlit);body.geometry=bodyGeometry;head.geometry=headGeometry;body.material=bodyMaterial;head.material=headMaterial;poolChanged=true;resize();
    }
-   const resetChanged=lastReset!==p.cameraReset,viewChanged=lastView!==p.cameraView,selectionChanged=lastSelected!==p.selected;
-   const shouldFocus=focusAllowed&&!!p.selected&&frame>1&&(selectionChanged||(resetChanged&&lastReset>=0&&!viewChanged));
-   if(viewChanged||resetChanged){lastView=p.cameraView;lastReset=p.cameraReset;if(focusAllowed)preset(p.cameraView);}
-   if(selectionChanged||resetChanged||tenantsChanged){lastSelected=p.selected;const focus=p.selected?world.locations.get(p.selected):undefined;selection.visible=!!focus;if(focus){selection.position.copy(focus);selection.position.y+=.16;const unit=targetUnit(p.selected);ring.scale.set(unit?Math.max(unit.width,unit.depth)*.64:2,unit?Math.max(unit.width,unit.depth)*.64:2,1);if(shouldFocus&&p.selected!=='ZHALL'&&!p.selected?.startsWith('ZPLATFORM'))moveCamera(focus,new THREE.Vector3(17,24,26),p.selected?.startsWith('TRAIN')?.9:1.9);}}
+   const resetChanged=lastReset!==p.cameraReset,viewChanged=lastView!==p.cameraView,selectionChanged=lastSelected!==p.selected,cameraFloorChanged=lastCameraFloor!==p.floor;
+   if(viewChanged||resetChanged||cameraFloorChanged){lastView=p.cameraView;lastReset=p.cameraReset;lastCameraFloor=p.floor;if(focusAllowed)preset(p.cameraView);}
+   // Selection updates its highlight; camera movement requires the explicit Focus command.
+   if(selectionChanged||resetChanged||tenantsChanged){lastSelected=p.selected;const focus=p.selected?world.locations.get(p.selected):undefined;selection.visible=!!focus;if(focus){selection.position.copy(focus);selection.position.y+=.16;const unit=targetUnit(p.selected);ring.scale.set(unit?Math.max(unit.width,unit.depth)*.64:2,unit?Math.max(unit.width,unit.depth)*.64:2,1);}}
+   if(lastFocusRevision!==p.cameraFocusRevision){lastFocusRevision=p.cameraFocusRevision;
+    const focus=p.cameraFocus?world.locations.get(p.cameraFocus):undefined;
+    // Consume commands during placement so a finished drop cannot trigger a delayed camera jump.
+    if(focusAllowed&&focus){if(p.cameraFocus?.startsWith('TRAIN')||p.cameraFocus?.startsWith('ZPLATFORM'))preset('platform');else if(p.cameraFocus==='ZHALL')preset('hall');else moveFrame(shopCameraFrame(focus));}
+   }
    const snapshot=snapshotCache.read(p.result,p.clock.current),snapshotChanged=snapshot!==lastSnapshot;
    if(snapshotChanged){lastSnapshot=snapshot;renderDirty=true;}
    const floorChanged=lastCrowdFloor!==p.floor;if(lastCrowdSnapshot!==snapshot||floorChanged)visibleAgents=eligibleCrowd(snapshot.agents,p.floor);

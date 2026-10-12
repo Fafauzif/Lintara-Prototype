@@ -31,11 +31,11 @@ assert(workspaceStore.getState().past.length===historyBefore,'invalid drop does 
 render();const scene=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(scene.props.cameraView==='hall','default camera frames the commercial hall');
 const demandBefore=scene.props.result.metrics().arrivals;
-find(n=>n.props?.['data-testid']==='quality-high').props.onClick();render();
+find(n=>n.props?.['data-testid']==='quality-select').props.onChange({target:{value:'high'}});render();
 let active=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(active.props.quality==='high','High changes renderer quality');
 assert(active.props.result.metrics().arrivals===demandBefore,'High preserves modeled passenger demand');
-find(n=>n.props?.['data-testid']==='quality-low').props.onClick();render();
+find(n=>n.props?.['data-testid']==='quality-select').props.onChange({target:{value:'low'}});render();
 active=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(active.props.quality==='low'&&active.props.result.metrics().arrivals===demandBefore,'Lite preserves the same modeled demand');
 const plan=JSON.stringify(workspaceStore.getState().scenario);
@@ -47,6 +47,7 @@ assert(JSON.stringify(workspaceStore.getState().scenario)===plan,'previewing a t
 find(n=>n.type==='button'&&n.props?.children==='Tenant').props.onClick();render();
 find(n=>n.props?.['data-testid']==='nav-station').props.onClick();render();
 find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T2');render();
+find(n=>n.props?.['data-testid']==='business-details').props.onClick();render();
 find(n=>n.props?.tenant?.id==='T2'&&typeof n.props?.onMove==='function').props.onMove();render();
 find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','coffee');render();
 assert(workspaceStore.getState().scenario.tenants.find(t=>t.id==='T2').unitId==='U3','tenant can directly move their own shop');
@@ -64,19 +65,89 @@ console.log('Controlled React hook callbacks only; no browser, drag gesture, pix
 // Discoverability and new-hour controls must be present in the visible shell.
 workspaceStore.getState().reset();values.length=0;render();
 const header=find(n=>n.type==='header');
-assert(nodes(header).some(n=>n.props?.['data-testid']==='quality-high'),'quality is directly in the header beside roles');
+assert(nodes(header).some(n=>n.props?.['data-testid']==='quality-select'),'quality is directly in the header beside roles');
 const main=find(n=>n.type==='main');const children=nodes(main);
 const playbackAt=children.findIndex(n=>typeof n.props?.onPreview==='function');
 const sceneAt=children.findIndex(n=>n.props?.['data-testid']==='scene-container');
-assert(playbackAt>=0&&playbackAt<sceneAt,'playback is before the station scene');
+assert(playbackAt>=0&&playbackAt>sceneAt,'single playback dock follows the station scene');
 const command=find(n=>typeof n.props?.onHourChange==='function');
 command.props.onHourChange(18);render();
 assert(workspaceStore.getState().scenario.startHour===18&&workspaceStore.getState().scenario.period==='evening','hour control changes the modeled evening profile');
 assert(find(n=>typeof n.props?.onPreview==='function').props.currentTime===1460,'hour change preserves relative preview position');
 const headerPlan=JSON.stringify(workspaceStore.getState().scenario);
-find(n=>n.props?.['data-testid']==='header-next-train').props.onClick();render();
-assert(find(n=>typeof n.props?.onPreview==='function').props.currentTime===1995,'header Next train directly previews next approach');
-assert(JSON.stringify(workspaceStore.getState().scenario)===headerPlan,'header preview preserves period and business plan');
-find(n=>n.props?.['data-testid']==='nav-opportunity').props.onClick();render();
+find(n=>typeof n.props?.onPreview==='function').props.onPreview('next');render();
+assert(find(n=>typeof n.props?.onPreview==='function').props.currentTime===1995,'dock Next train directly previews next approach');
+assert(JSON.stringify(workspaceStore.getState().scenario)===headerPlan,'dock preview preserves period and business plan');
+find(n=>n.props?.['data-testid']==='nav-business').props.onClick();render();
 assert(nodes(tree).some(n=>n.type?.name==='OpportunityPage'),'opportunity page is directly reachable');
 console.log(checks.length+' total workspace/showcase callbacks passed.');
+
+// Revised shell: disclosure follows intent and navigation retains every workflow.
+workspaceStore.getState().reset();values.length=0;render();
+assert(nodes(tree).filter(n=>n.props?.['data-testid']?.startsWith('nav-')).length===3,'main navigation has three destinations');
+assert(!nodes(tree).some(n=>n.props?.className?.includes('shop-dock')||n.type?.name==='ShopDock'),'catalog starts closed');
+const initialScene=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
+const resetBefore=initialScene.props.cameraReset;
+initialScene.props.onSelect('T2');render();
+assert(nodes(tree).some(n=>n.props?.['data-testid']==='shop-summary'),'shop selection opens a quick summary');
+assert(!nodes(tree).some(n=>n.props?.className==='inspector'),'shop selection does not open full details');
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.cameraReset===resetBefore,'ordinary selection preserves the camera');
+find(n=>n.props?.['data-testid']==='focus-shop').props.onClick();render();
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.cameraFocus==='T2','explicit focus targets the chosen shop');
+find(n=>n.props?.['data-testid']==='business-details').props.onClick();render();
+assert(nodes(tree).some(n=>n.props?.className==='inspector'),'Business details opens full inspector');
+const detailMarkup=require('react-dom/server').renderToStaticMarkup(find(n=>n.props?.tenant?.id==='T2'&&typeof n.props?.onMove==='function'));
+assert(detailMarkup.includes('Performance so far')&&detailMarkup.includes('Sales so far')&&detailMarkup.includes('07:00–'),'details clearly labels its elapsed performance window');
+find(n=>n.props?.['data-testid']==='place-shop').props.onClick();render();
+assert(nodes(tree).some(n=>n.type?.name==='ShopDock'),'Add shop opens the catalog');
+assert(!nodes(tree).some(n=>n.props?.className==='inspector'),'placement closes full inspector');
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','bakery');render();
+assert(!nodes(tree).some(n=>n.type?.name==='ShopDock'),'successful placement closes the catalog');
+const countPlaced=workspaceStore.getState().scenario.tenants.length;
+find(n=>n.props?.['data-testid']==='undo-plan').props.onClick();render();
+assert(workspaceStore.getState().scenario.tenants.length===countPlaced-1,'visible Undo reverses catalog placement');
+find(n=>n.props?.['data-testid']==='nav-business').props.onClick();render();
+assert(nodes(tree).some(n=>n.type?.name==='OpportunityPage'),'Business opens the opportunity workflow');
+for(const id of ['business','tenants','locations','staffing','campaigns']) {
+ find(n=>n.props?.['data-testid']==='business-tab-'+id).props.onClick();render();
+ assert(!nodes(tree).some(n=>n.props?.className==='shop-catalog'),'business subpages retain a closed catalog');
+}
+find(n=>n.props?.['data-testid']==='nav-compare').props.onClick();render();
+assert(nodes(tree).some(n=>n.type?.name==='ScenarioPage'),'Compare opens impact comparison');
+find(n=>n.props?.['data-testid']==='compare-tab-overview').props.onClick();render();
+assert(nodes(tree).some(n=>n.type?.name==='OverviewPage'),'Compare retains the report overview');
+find(n=>n.type==='button'&&n.props?.children==='Tenant').props.onClick();render();
+find(n=>n.props?.['data-testid']==='nav-station').props.onClick();render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T1');render();
+assert(!nodes(tree).some(n=>n.props?.['data-testid']==='shop-summary'),'tenant neighbor selection shows no business summary');
+assert(!nodes(tree).some(n=>n.props?.['data-testid']==='place-shop'),'tenant cannot access Add shop');
+console.log(checks.length+' total revised UX checks passed.');
+
+// Camera modes remain available after grouping view controls.
+workspaceStore.getState().reset();values.length=0;render();
+find(n=>n.props?.['aria-controls']==='view-controls').props.onClick();render();
+find(n=>n.type==='select'&&n.props?.['aria-label']==='Overview camera').props.onChange({target:{value:'top'}});render();
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.cameraView==='top','Top down remains available in View controls');
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.floor==='all','camera preset restores all floors');
+console.log(checks.length+' final UX callbacks passed.');
+
+// A renderer remount must not replay a focus command for an obsolete selection.
+workspaceStore.getState().reset();values.length=0;render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T2');render();
+find(n=>n.props?.['data-testid']==='focus-shop').props.onClick();render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T1');render();
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.cameraFocus===null,'ordinary selection clears obsolete focus for renderer remount');
+find(n=>n.props?.['data-testid']==='focus-shop').props.onClick();render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','bakery');render();
+assert(find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.cameraFocus===null,'placement clears obsolete focus for renderer remount');
+console.log(checks.length+' final revised workspace callbacks passed.');
+
+// The placement toast must not undo an earlier edit after toolbar Undo consumed its entry.
+workspaceStore.getState().reset();values.length=0;render();
+const earlier=structuredClone(workspaceStore.getState().scenario);earlier.name='Earlier edit';workspaceStore.getState().commit(earlier);render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','bakery');render();
+assert(nodes(tree).some(n=>n.props?.className==='shop-undo'),'placement offers one Undo action');
+find(n=>n.props?.['data-testid']==='undo-plan').props.onClick();render();
+assert(!nodes(tree).some(n=>n.props?.className==='shop-undo'),'toolbar Undo consumes the placement toast action');
+assert(workspaceStore.getState().scenario.name==='Earlier edit','placement Undo preserves the earlier edit');
+console.log(checks.length+' verified v1.3 workspace callbacks passed.');

@@ -14,7 +14,7 @@ Actual DPR is `min(devicePixelRatio, preset ceiling)`. Standard is the existing 
 
 Lite reduces pixel work, passenger geometry and passenger lighting, and removes shadow rendering. High supplies finer curved silhouettes and higher resolution/shadow detail. It does not add arms, legs or additional agents. Passenger instances currently do not cast shadows; the larger High shadow map benefits existing static station/shop shadows. Static station construction, camera controls and simulation remain shared. Antialiasing remains enabled on the renderer.
 
-The internal enum names are unchanged for compatible callers: `low` → Lite, `balanced` → Standard, `high` → High. The UI defaults to Standard. Version1.2 exposes all three presets directly beside Operator/Tenant in the header; they are not under Layers. The exact profile source is [quality.ts](../src/scene/quality.ts).
+The internal enum names are unchanged for compatible callers: `low` → Lite, `balanced` → Standard, `high` → High. The UI defaults to Standard. Version 1.3 exposes them through one labeled quality selector directly beside Operator/Tenant in the header; they are not under Layers. The exact profile source is [quality.ts](../src/scene/quality.ts).
 
 ## Every eligible person, with explicit overflow
 
@@ -46,13 +46,15 @@ Submitted counts are not counts of individually visible pixels: a person may be 
 
 ## Close hall view and direct placement
 
-The application defaults to the hall preset, with roof off and cutaway on. It uses an orthographic three-quarter frame: target `(0,1,-4)`, offset `(23,25,28)` and zoom 1.5, approximately 35° elevation. Hall, Platforms, Whole station and Top down views remain available; selecting a shop normally focuses it.
+The application defaults to a closer Hall preset, with roof off and cutaway on. Orthographic framing uses relevant scene bounds projected into the camera view and the actual canvas aspect. Hall, Platforms, Whole station and Top down views remain available. The shared [cameraFraming.ts](../src/scene/cameraFraming.ts) defines view bounds and shop focus for 3D and the live 2D map.
 
-Clicking a shop card enters placement mode. Clicking a valid unit or dropping its card commits through `onPlace(unitId, category?)` after shared `canPlace` validation. The release reads the supported category from the drag’s `text/plain` payload. The existing shop remains visible while it is moved until the committing transaction succeeds.
+Selecting a shop updates its quick summary and selection highlight without moving the camera. Focus shop is the explicit close-frame action; Business details opens the full inspector. Resizing a canvas recomputes a fitting frame while retaining user zoom. Whole station is the wider context view, rather than the default commercial interaction frame.
+
+Add shop opens the catalog. Clicking a shop card enters placement mode. Clicking a valid unit or dropping its card commits through `onPlace(unitId, category?)` after shared `canPlace` validation. The release reads the supported category from the drag’s `text/plain` payload. Successful placement or cancellation closes the catalog; an invalid target leaves it available with a reason. The existing shop remains visible while it is moved until the committing transaction succeeds.
 
 Exactly one translucent shop ghost follows the current snapped commercial target. It uses the shared size/rotation/frontage transform, appears green when valid and red when invalid, and reports the validation reason through `onPlacementHover`. Hovering a protected route, gate, platform or other non-unit area reports `protected-area` with “Place the shop inside an available commercial unit.” There is no snapped ghost over such a surface and no placement callback. When the pointer leaves the canvas, an explicitly selected unit may remain previewed.
 
-Placement suspends orbit, camera reset and automatic focus. Residual orbit damping is drained while preserving camera position, target and zoom. The first completed placement frame also suppresses focus, so the camera does not jump after a valid drop. R rotates placement by 90° and Escape cancels in the application. Outside placement, R resets the camera and ordinary orbit/pan/zoom controls resume.
+Placement suspends orbit, camera reset and explicit focus. Residual orbit damping is drained while preserving camera position, target and zoom. The first completed placement frame also suppresses focus, so the camera does not jump after a valid drop. R rotates placement by 90° and Escape cancels in the application. Outside placement, R resets the camera and ordinary orbit/pan/zoom controls resume.
 
 ## Paused reuse and wake behavior
 

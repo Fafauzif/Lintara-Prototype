@@ -31,11 +31,11 @@ assert(workspaceStore.getState().past.length===historyBefore,'invalid drop does 
 render();const scene=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(scene.props.cameraView==='hall','default camera frames the commercial hall');
 const demandBefore=scene.props.result.metrics().arrivals;
-find(n=>n.props?.['data-testid']==='quality-high').props.onClick();render();
+find(n=>n.props?.['data-testid']==='quality-select').props.onChange({target:{value:'high'}});render();
 let active=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(active.props.quality==='high','High changes renderer quality');
 assert(active.props.result.metrics().arrivals===demandBefore,'High preserves modeled passenger demand');
-find(n=>n.props?.['data-testid']==='quality-low').props.onClick();render();
+find(n=>n.props?.['data-testid']==='quality-select').props.onChange({target:{value:'low'}});render();
 active=find(n=>n.props?.result&&typeof n.props?.onPlace==='function');
 assert(active.props.quality==='low'&&active.props.result.metrics().arrivals===demandBefore,'Lite preserves the same modeled demand');
 const plan=JSON.stringify(workspaceStore.getState().scenario);
@@ -47,6 +47,7 @@ assert(JSON.stringify(workspaceStore.getState().scenario)===plan,'previewing a t
 find(n=>n.type==='button'&&n.props?.children==='Tenant').props.onClick();render();
 find(n=>n.props?.['data-testid']==='nav-station').props.onClick();render();
 find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T2');render();
+find(n=>n.props?.['data-testid']==='business-details').props.onClick();render();
 find(n=>n.props?.tenant?.id==='T2'&&typeof n.props?.onMove==='function').props.onMove();render();
 find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','coffee');render();
 assert(workspaceStore.getState().scenario.tenants.find(t=>t.id==='T2').unitId==='U3','tenant can directly move their own shop');
