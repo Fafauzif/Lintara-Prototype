@@ -8,7 +8,12 @@ import type { StationWorld } from './station';
 
 export interface TenantsWorld {assets:Assets; outlines:Map<string,THREE.LineSegments>; valid:Map<string,boolean>; previews:Map<string,THREE.Group>;}
 
+export function clearCachedTenantLocations(world:Pick<StationWorld,'units'|'locations'>){
+ for(const [unitId,parent]of world.units){const id=parent.userData.selectId;if(typeof id==='string'&&id!==unitId)world.locations.delete(id);}
+}
+
 export function buildTenants(world:StationWorld,scenario:Scenario):TenantsWorld {
+ clearCachedTenantLocations(world);
  const assets=new Assets();const outlines=new Map<string,THREE.LineSegments>(),valid=new Map<string,boolean>(),previews=new Map<string,THREE.Group>();
  for(const unit of UNITS){
   const parent=world.units.get(unit.id)!;parent.clear();const tenant=scenario.tenants.find(t=>t.unitId===unit.id);
@@ -21,8 +26,11 @@ export function buildTenants(world:StationWorld,scenario:Scenario):TenantsWorld 
   shell.finish(parent,false);
   parent.add(pickVolume(assets,tenant?.id??unit.id,0,.04,0,unit.width,.1,unit.depth));
   const border=outline(assets,unit.width,unit.depth,tenant?CATEGORIES[tenant.category].color:'#BBC8BE');border.position.y=.075;parent.add(border);outlines.set(unit.id,border);outlines.set(tenant?.id??unit.id,border);
-  const preview=new THREE.Group();preview.position.y=.15;const previewOutline=outline(assets,FOOTPRINTS.small.width,FOOTPRINTS.small.depth,'#21866B');preview.add(previewOutline);
-  const front=new Batch(assets);front.box('#21866B',0,.09,1.13,2.1,.08,.12);front.box('#21866B',0,.09,1.45,.12,.08,.6);front.finish(preview,false);preview.visible=false;parent.add(preview);previews.set(unit.id,preview);
+  // One target is visible at a time; the translucent shell shows the actual shop footprint.
+  const preview=new THREE.Group();const previewMaterial=new THREE.MeshBasicMaterial({color:'#21866B',transparent:true,opacity:.28,depthWrite:false});assets.materials.set(`ghost-${unit.id}`,previewMaterial);
+  const previewBox=(x:number,y:number,z:number,w:number,h:number,d:number)=>{const mesh=new THREE.Mesh(assets.cube,previewMaterial);mesh.position.set(x,y,z);mesh.scale.set(w,h,d);mesh.renderOrder=4;preview.add(mesh);};
+  previewBox(0,.05,0,3,.1,2);previewBox(0,1.4,-1,3,2.7,.13);previewBox(-1.5,1.4,0,.13,2.7,2);previewBox(1.5,1.4,0,.13,2.7,2);previewBox(0,2.65,1,3.2,.5,.2);previewBox(0,.65,.35,2.3,1.1,.6);
+  const previewOutline=outline(assets,FOOTPRINTS.small.width,FOOTPRINTS.small.depth,'#21866B');preview.add(previewOutline);preview.visible=false;parent.add(preview);previews.set(unit.id,preview);
   if(tenant){
    const shop=buildShop(assets,tenant,unit);parent.add(shop);const pose=shopTransform(unit,tenant);world.locations.set(tenant.id,new THREE.Vector3(pose.centerX,1,pose.centerZ));
   }else{
@@ -92,11 +100,24 @@ function retail(b:Batch,w:number,d:number){
  for(let k=0;k<3;k++)b.box('#D0B884',w*.08+k*.31,1.62,-d/2+.25,.22,.43,.25);
 }
 
-export function setPlacement(t:TenantsWorld,scenario:Scenario,category:Category|null,rotation:number,size:Tenant['size']='medium',movingId?:string){
- for(const unit of UNITS){const fits=!!category&&canPlace(scenario,category,unit.id,size,rotation,movingId).valid;
+export function setPlacement(t:TenantsWorld,scenario:Scenario,category:Category|null,rotation:number,size:Tenant['size']='medium',movingId?:string,targetUnit?:string|null){
+ for(const unit of UNITS){
+  const fits=!!category&&canPlace(scenario,category,unit.id,size,rotation,movingId).valid;
   t.valid.set(unit.id,fits);const line=t.outlines.get(unit.id)!;const mat=line.material as THREE.LineBasicMaterial;
-  if(category){mat.color.set(fits?'#21866B':'#B7BCB8');mat.opacity=fits?.95:.45;}else{const tenant=scenario.tenants.find(s=>s.unitId===unit.id);mat.color.set(tenant?CATEGORIES[tenant.category].color:'#BBC8BE');mat.opacity=.5;}
-  const preview=t.previews.get(unit.id)!,pose=shopTransform(unit,{size,rotation});preview.visible=!!category&&fits;preview.rotation.y=pose.angleY;
+  const targeted=!!category&&unit.id===targetUnit,tenant=scenario.tenants.find(s=>s.unitId===unit.id),tint=fits?'#21866B':'#CD594D';
+  mat.color.set(targeted?tint:tenant?CATEGORIES[tenant.category].color:'#BBC8BE');mat.opacity=targeted?.95:.5;
+  const preview=t.previews.get(unit.id)!,pose=shopTransform(unit,{size,rotation});preview.visible=targeted;preview.rotation.y=pose.angleY;
   preview.scale.set(pose.localWidth/FOOTPRINTS.small.width,1,pose.localDepth/FOOTPRINTS.small.depth);preview.position.set(pose.offsetX,.15,pose.offsetZ);
+  if(targeted)preview.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.LineSegments){const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials){if(material instanceof THREE.MeshBasicMaterial||material instanceof THREE.LineBasicMaterial)material.color.set(tint);}}});
  }
+}
+
+export function placementTargetStatus(scenario:Scenario,category:Category|null,unitId:string|null,size:Tenant['size']='medium',rotation=0,movingId?:string):{unitId:string;valid:boolean;reason:string}|null{
+ if(!category)return null;
+ if(!unitId)return {unitId:'protected-area',valid:false,reason:'Place the shop inside an available commercial unit.'};
+ return {unitId,...canPlace(scenario,category,unitId,size,rotation,movingId)};
+}
+
+export function placementPreviewTarget(overCanvas:boolean,hovered:string|null,selected?:string|null):string|null{
+ return overCanvas?hovered:selected??null;
 }

@@ -1,6 +1,6 @@
 {
   "name": "lintara",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "benchmark": "node --import tsx tools/benchmark.ts",
-    "check:pages": "node --require tsx/cjs tools/verify-pages.cjs"
+    "check:pages": "node --require tsx/cjs tools/verify-pages.cjs",
+    "check:workspace": "node --require tsx/cjs tools/verify-workspace.cjs"
   },
   "dependencies": {
     "lucide-react": "0.468.0",

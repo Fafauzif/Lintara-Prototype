@@ -1,0 +1,23 @@
+import type {Language} from '../domain/types';
+import {translate} from './index';
+const id:Record<string,string>={
+ 'Lite':'Lite','Standard':'Standard','High':'High','Graphics':'Grafis','Whole station':'Seluruh stasiun','Platforms':'Peron',
+ 'Lite: simpler people, lower resolution, no shadows.':'Lite: bentuk orang lebih sederhana, resolusi rendah, tanpa bayangan.',
+ 'Standard: the original rendering baseline.':'Standard: dasar render seperti versi awal.',
+ 'High: finer people, sharper resolution and shadows.':'High: bentuk orang lebih rinci, resolusi dan bayangan lebih tajam.',
+ 'Assumed demand':'Asumsi arus','Normal':'Normal','Busy':'Ramai','Legacy':'Versi awal',
+ 'Authored demand assumptions, not measured KRL traffic.':'Asumsi simulasi, bukan pengukuran arus KRL.',
+ 'Interactive 2D is active. Your plan and every passenger remain available.':'Tampilan 2D interaktif aktif. Rencana dan semua penumpang tetap tersedia.',
+ 'Retry 3D':'Coba 3D lagi','Loading station…':'Memuat stasiun…','Passengers alighting':'Penumpang turun',
+ 'Schedule and play':'Jadwalkan dan putar','Earliest available':'Waktu tersedia terdekat','No available slot in this hour.':'Tidak ada slot tersedia pada jam ini.',
+ 'The chosen time is occupied. The earliest safe slot will be used.':'Waktu yang dipilih sedang terpakai. Slot aman terdekat akan digunakan.',
+ 'Arrival scheduled':'Kedatangan dijadwalkan','No more arrivals in this hour':'Tidak ada kedatangan lagi pada jam ini',
+ 'Shop moved':'Toko dipindahkan','Replay arrival':'Ulangi kedatangan','Next train':'Kereta berikutnya',
+ 'Place the shop inside an available commercial unit.':'Tempatkan toko di dalam unit komersial yang tersedia.',
+ 'Drag a card to place · R rotates · Escape cancels':'Seret kartu untuk memasang · R memutar · Escape membatalkan',
+ 'Select a vacant unit or drag a shop card into the station.':'Pilih unit kosong atau seret kartu toko ke dalam stasiun.',
+ 'Use Next train to preview an arrival without changing your plan.':'Gunakan Kereta berikutnya untuk melihat kedatangan tanpa mengubah rencana.',
+ 'Drop into a valid unit, then use Undo to reverse the placement.':'Lepas di unit yang sesuai, lalu gunakan Undo untuk membatalkan penempatan.',
+ 'Outside modeled hour':'Di luar jam simulasi','Scheduled':'Terjadwal','Completed':'Selesai','Drag to pan · Scroll to zoom':'Seret untuk menggeser · Gulir untuk memperbesar','Time':'Waktu','Train schedule':'Jadwal kereta','Dwell':'Berhenti','Delay':'Tunda','At platform':'Di peron','Approaching':'Mendekat','Departing':'Berangkat',
+};
+export function revisionTranslate(lang:Language,key:string):string{return lang==='id'&&key in id?id[key]:translate(lang,key);}

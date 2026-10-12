@@ -229,7 +229,10 @@ describe('anonymous deterministic station model',()=>{
     const t=(r:ReturnType<typeof run>)=>r.metrics().tenants.find(t=>t.tenantId==='T2')!;
     expect(t(purchases).visits).not.toBe(t(awareness).visits);
     expect(t(purchases).campaignCost).toBe(t(visits).campaignCost);
-    expect(purchases.metrics().exposure).toBe(visits.metrics().exposure);
+    // Campaign objectives can change shopping routes and therefore actual screen encounters.
+    // They must preserve exogenous demand while qualifying only a subset of real exposures.
+    expect(purchases.metrics().arrivals).toBe(visits.metrics().arrivals);
+    for(const result of [purchases,visits]){expect(result.metrics().qualifiedExposure).toBeGreaterThan(0);expect(result.metrics().qualifiedExposure).toBeLessThanOrEqual(result.metrics().exposure);}
     expect(t(purchases).transactions).toBeLessThan(t(purchases).visits);
   });
   it('contains a stress queue in the shop frontage while preserving the concourse route',()=>{

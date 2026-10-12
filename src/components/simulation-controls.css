@@ -1,0 +1,84 @@
+.simulation-controls {
+  --playback-ink: #172b54;
+  --playback-muted: #475569;
+  --playback-line: #d8e0eb;
+  flex-shrink: 0;
+  min-width: 0;
+  width: 100%;
+  padding: 9px 0 8px;
+  color: var(--playback-ink);
+  font-size: 12px;
+}
+.simulation-controls button, .simulation-controls select, .simulation-controls input { font: inherit; }
+.simulation-controls-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 8px; }
+.simulation-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.simulation-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--playback-line); border-radius: 7px; color: var(--playback-ink); background: #fff; font-weight: 600; cursor: pointer; }
+.simulation-action--play { background: #243b75; border-color: #243b75; color: #fff; }
+.simulation-action--add { background: #f47b20; border-color: #c9570c; color: #17233d; }
+.simulation-controls button:disabled { cursor: default; opacity: .48; }
+.simulation-action:hover:not(:disabled) { box-shadow: inset 0 0 0 1px currentColor; }
+.simulation-controls :is(button, select, input, summary, [tabindex]):focus-visible { outline: 3px solid #245edb; outline-offset: 3px; }
+.simulation-clock-speed { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.simulation-clock-speed > strong { font-size: 17px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.simulation-clock-speed small { font-size: 10px; font-weight: 500; color: var(--playback-muted); }
+.simulation-clock-speed label { display: flex; align-items: center; gap: 6px; color: var(--playback-muted); }
+.simulation-clock-speed select { min-width: 68px; min-height: 44px; border: 1px solid var(--playback-line); border-radius: 7px; padding: 0 7px; background: #fff; color: var(--playback-ink); }
+.simulation-plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.simulation-controls .simulation-plan-actions :is(.button, .icon-button, .scenario-toggle button) { min-height: 44px; }
+.simulation-controls .simulation-plan-actions .icon-button { min-width: 44px; }
+.simulation-controls .history-controls { flex-wrap: wrap; gap: 4px; }
+.simulation-controls .history-controls .button { display: inline-flex; min-height: 44px; margin: 0; }
+.simulation-timetable-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-bottom: 5px; font-size: 11px; }
+.simulation-current-phase { color: var(--playback-ink); font-weight: 600; line-height: 1.5; }
+.simulation-next-countdown { color: var(--playback-muted); line-height: 1.5; }
+.simulation-next-countdown b { color: var(--playback-ink); font-variant-numeric: tabular-nums; }
+.simulation-timetable-details { border-top: 1px solid var(--playback-line); }
+.simulation-timetable-details > summary { min-height: 44px; padding: 8px 2px; cursor: pointer; list-style-position: inside; font-size: 11px; font-weight: 600; }
+.simulation-timetable-details > summary > span { display: inline-flex; align-items: center; gap: 7px; vertical-align: middle; }
+.simulation-timetable-details > summary > small { float: right; color: var(--playback-muted); font-size: 10px; font-weight: 400; line-height: 24px; }
+.simulation-timetable-details[open] { padding-bottom: 3px; }
+.simulation-timetable-scroll { overflow: auto; max-height: 230px; overscroll-behavior: contain; scrollbar-width: thin; padding: 4px; margin: -4px; border-radius: 7px; }
+.simulation-timetable { min-width: 640px; }
+.simulation-range-label { display: flex; justify-content: space-between; gap: 12px; color: var(--playback-muted); font-size: 10px; }
+.simulation-range-label > span { font-variant-numeric: tabular-nums; }
+.simulation-scrubber input { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: #243b75; cursor: pointer; }
+.simulation-platform { padding: 7px 0 6px; border-bottom: 1px solid var(--playback-line); }
+.simulation-platform-label { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; line-height: 1.4; }
+.simulation-platform-label > span { color: var(--playback-muted); }
+.simulation-platform-track { position: relative; width: 100%; min-height: 52px; margin-top: 2px; background: repeating-linear-gradient(to right, #e7edf5 0, #e7edf5 1px, transparent 1px, transparent 25%); }
+.simulation-time-cursor { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed #243b75; pointer-events: none; z-index: 1; }
+.simulation-train-window { position: absolute; height: 5px; border-radius: 3px; background: #8fa5c8; pointer-events: none; }
+.simulation-train-window--added { background: #f47b20; }
+.simulation-train-marker, .simulation-intervention-marker { position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 68px; min-height: 44px; padding: 4px 2px; border: 1px solid #9caec9; border-radius: 6px; background: #f3f6fc; color: var(--playback-ink); line-height: 1.15; text-align: center; cursor: pointer; }
+.simulation-train-marker strong, .simulation-intervention-marker strong { max-width: 100%; font-size: 10px; font-weight: 600; overflow-wrap: anywhere; }
+.simulation-train-marker > span, .simulation-intervention-marker > span { font-size: 10px; font-variant-numeric: tabular-nums; }
+.simulation-train-marker--added { border-color: #bc540f; background: #fff0e3; }
+.simulation-train-marker--active { border-color: #17233d; background: #f47b20; color: #17233d; box-shadow: inset 0 0 0 1px #17233d; }
+.simulation-train-marker:hover:not(:disabled), .simulation-intervention-marker:hover { border-color: #243b75; box-shadow: inset 0 0 0 1px #243b75; }
+.simulation-interventions { padding-top: 7px; color: var(--playback-muted); font-size: 11px; }
+.simulation-intervention-marker { background: #fff; border-style: dashed; }
+.simulation-time-labels { display: flex; justify-content: space-between; margin-top: 8px; color: var(--playback-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.simulation-timetable-footer { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-top: 9px; color: var(--playback-muted); }
+.simulation-timetable-legend { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+.simulation-timetable-legend i { display: inline-block; width: 8px; height: 8px; border: 1px solid #657fa9; border-radius: 2px; background: #edf2fa; }
+.simulation-timetable-legend .simulation-added-key { margin-left: 7px; border-color: #bc540f; background: #f47b20; }
+.simulation-timetable-footer small { max-width: 380px; font-size: 10px; line-height: 1.4; }
+.simulation-controls--compact { padding: 10px 0; }
+.simulation-controls--compact .simulation-controls-top { gap: 9px; }
+.simulation-controls--compact .simulation-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.simulation-controls--compact .simulation-action { padding: 0 8px; font-size: 11px; }
+.simulation-controls--compact .simulation-clock-speed { width: 100%; margin-left: 0; justify-content: space-between; }
+.simulation-controls--compact .simulation-plan-actions { margin-left: 0; }
+.simulation-controls--compact .simulation-timetable-footer small { max-width: none; }
+@media (max-width: 720px) {
+  .simulation-controls-top { gap: 9px; }
+  .simulation-actions { width: 100%; }
+  .simulation-action { flex: 1 1 auto; font-size: 11px; padding: 0 8px; }
+  .simulation-clock-speed { margin-left: 0; }
+  .simulation-plan-actions { margin-left: 0; }
+  .simulation-timetable-footer small { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .simulation-controls *, .simulation-controls *::before, .simulation-controls *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media print { .simulation-controls { display: none !important; } }

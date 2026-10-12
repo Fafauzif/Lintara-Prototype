@@ -18,3 +18,14 @@ Use `npm ci`, `npm run dev`, then the printed local URL. Inspect at 1920×1080, 
 12. On phone verify lightweight preview, readable metrics/trend, role insight and copied bundled-preset link with success/error. Confirm `world`/Three and StationScene chunks are not requested at phone width. WebGL denial/context loss gives useful preserved analysis and retry.
 13. Performance: normal/stress walkthrough, 30-second frame-time samples and ten placement/seek/floor/reset cycles. Record real GPU, RAM, OS, viewport, pixel ratio, mode, frame-time median/p95, memory and renderer counts. An offscreen/software-rendered browser is separate evidence from the intended integrated-GPU laptop.
 14. Capture actual final desktop station/tenant/location/campaign/mobile applications after passing checks; substitute these for source-specification guide pages if required. Re-export the same16-slide guide and inspect every page.
+
+## Revision 1.1 checks
+
+- Verify close Hall framing and direct Hall/Platforms/Whole station controls across laptop, tablet and phone dimensions.
+- Drag each category into valid, occupied, undersized and protected targets; confirm one ghost, exact reason, stable camera and one Undo entry. Test tap/click and keyboard alternatives, move, R and Escape.
+- Compare Lite/Standard/High eligible/submitted counts at the same paused instant; measure actual frame times, memory and quality-switch disposal. Test busy and large imported scenarios.
+- Next train and Replay must seek before approach and play without changing the plan. Outside-hour trains cannot replay. Added arrivals must show a safe platform slot, commit and play.
+- Timetable details start collapsed; action bar, clock, countdown and slider stay visible. Check sticky controls never cover focused placement targets.
+- Force or encounter WebGL loss through a permitted test environment; verify live 2D selection/placement and all eligible agents remain available.
+- On phones, verify map zoom/Fit controls stay inside the canvas host, sheet details do not block close/cancel, and R rotates placement without resetting framing.
+- Verify role transitions clear transient placement; an owner can move their own shop but cannot add a new business through a forged drop payload.

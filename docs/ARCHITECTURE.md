@@ -15,3 +15,7 @@ The application is a static Vite/React client. It needs no backend, credentials,
 Rendering uses real frame delta; model time is held in a mutable clock; DOM updates are throttled. Pause/seek do not make agents advance independently; seeking pauses to retain the selected instant. Camera movement is independent of model pause. Hidden tab/host rendering is suspended. Balanced DPR is 1, low 0.75 and high capped at 1.5; representation quality does not reduce analytical counts. Live WebGL/GPU stability remains unverified in this execution environment.
 
 Sources, authored assumptions and measurement limits are recorded in the accompanying model/reconstruction/verification documents. The role switch provides presentation confidentiality only; it does not claim production authentication. Future live ingestion can replace authored fixtures behind the typed interfaces.
+
+## Revision 1.1
+
+`SimulationControls` and `domain/playback.ts` expose timetable preview and safe arrival slots. `ShopDock` commits validated placement through one history action. `SceneProps` serves both the lazy WebGL scene and the no-WebGL `StationMap`; `mapProjection.ts` uses the shared commercial geometry. Quality helpers change geometry/material/resolution/shadows independently of the optional `Scenario.crowd` environment assumption. Renderer errors switch to live 2D rather than duplicating a static fallback. Snapshot caches are bounded and frozen; no frame-level passenger React components exist.

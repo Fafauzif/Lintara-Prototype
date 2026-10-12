@@ -31,7 +31,7 @@ const report={
  type:'renderer-independent model benchmark',
  caveat:'CPU and Node memory evidence only. This does not establish browser GPU FPS on an 8 GB integrated-graphics laptop.',
  runtime:{node:process.version,platform:platform(),release:release(),cpu:cpus()[0]?.model??'unknown',logicalCpus:cpus().length,hostMemoryGiB:rounded(totalmem()/1024**3)},
- configuration:{seed:BASELINE.seed,durationSeconds:DURATION,shops:BASELINE.tenants.length,resultCacheLimit:6,metricCacheLimitPerResult:32},
+ configuration:{crowd:BASELINE.crowd??'legacy',snapshotCacheLimitPerResult:8,seed:BASELINE.seed,durationSeconds:DURATION,shops:BASELINE.tenants.length,resultCacheLimit:6,metricCacheLimitPerResult:32},
  simulationCold:stats(cold),stressSimulationMs:rounded(stress.ms),randomSeek:stats(seeks),reportQuery:stats(metricQueries),comparisonMs:rounded(comparison.ms),
  demand:{arrivals:whole.arrivals,departed:whole.departed,presentAtEnd:whole.present,peakPresentObserved:peakPresent,seekSamples:1000,agentsReadAcrossSeeks:totalAgentsRead,visits:whole.visits,transactions:whole.transactions,waitMeanMinutes:rounded(whole.waitMean),waitP90Minutes:rounded(whole.waitP90)},
  finance:{salesIdr:whole.sales,contributionIdr:whole.contribution,tenants:whole.tenants.map(t=>({id:t.tenantId,transactions:t.transactions,sales:t.sales,grossMargin:t.grossMargin,labor:t.labor,occupancy:t.occupancyCost,campaign:t.campaignCost,contribution:t.contribution}))},

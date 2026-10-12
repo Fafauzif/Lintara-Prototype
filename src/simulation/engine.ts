@@ -1,5 +1,5 @@
 import type {AgentSample,Bucket,Campaign,Comparison,Metrics,Scenario,SimulationResult,Snapshot,Tenant,TenantMetrics} from '../domain/types';
-import {BASELINE,CATEGORIES,DURATION,SCREENS,UNITS} from '../data/station';
+import {BASELINE,CATEGORIES,DURATION,PLATFORM_FLOW,SCREENS,TRAIN_DOOR_X,UNITS} from '../data/station';
 import {shopTransform} from '../domain/shopGeometry';
 import {canPlace} from '../domain/planning';
 import {buildTrainSchedule,checkTrainConflicts,TRAIN_APPROACH_SECONDS,TRAIN_DEPARTURE_SECONDS} from '../domain/trainSchedule';
@@ -9,13 +9,13 @@ import {distance,eventActive,nearestOnLeg,Router,ROUTE_CLOSURE_IDS,visibilityOnL
 import type {Leg,Point,Route} from './routing';
 
 interface Segment extends Leg{state:AgentSample['state'];tenantId?:string;}
-interface Agent{id:number;born:number;depart:number;origin:Point;destination:Point;boarding:boolean;speed:number;color:number;segments:Segment[];passing:Set<string>;screens:Map<string,Exposure>;}
+interface Agent{id:number;born:number;depart:number;origin:Point;destination:Point;boarding:boolean;boardingDoor?:Point;lane:number;speed:number;color:number;segments:Segment[];passing:Set<string>;screens:Map<string,Exposure>;}
 interface Visit{id:number;agent:Agent;tenant:Tenant;entry:number;join?:number;serviceStart?:number;serviceEnd?:number;exit?:number;queueEnd?:number;purchase?:number;sale:number;margin:number;abandoned:boolean;state:'browse'|'queue'|'service'|'complete';rawService:number;}
 interface Shop{tenant:Tenant;pose:ReturnType<typeof shopTransform>;front:Point;entry:Point;inside:Point;queue:Visit[];busy:number;}
 interface Pass{time:number;agent:number;tenant:string;}
 interface Exposure{time:number;agent:number;screen:string;intervals:{start:number;end:number}[];}
 interface Train extends TrainScheduleEntry{count:number;}
-interface Birth{id:number;time:number;platform?:number;}
+interface Birth{id:number;time:number;platform?:number;door?:number;}
 const resultCache=new Map<string,SimulationResult>();
 const bounded=(n:number,min:number,max:number)=>Math.min(max,Math.max(min,n));
 const overlap=(a:number,b:number,c:number,d:number)=>Math.max(0,Math.min(b,d)-Math.max(a,c));
@@ -28,6 +28,7 @@ function immutable<T>(value:T):T{if(value&&typeof value==='object'){for(const ch
 
 function validate(scenario:Scenario){
  if(scenario.version!==1||!finite(scenario.seed))throw new Error('Unsupported scenario version or seed.');
+ if(scenario.crowd!==undefined&&scenario.crowd!=='normal'&&scenario.crowd!=='busy')throw new Error('Crowd demand must be normal or busy.');
  const occupied=new Set<string>(),ids=new Set<string>();
  for(const tenant of scenario.tenants){
   const unit=UNITS.find(u=>u.id===tenant.unitId);
@@ -51,10 +52,11 @@ function validate(scenario:Scenario){
  for(const campaign of scenario.campaigns){if(!ids.has(campaign.tenantId)||!SCREENS.some(s=>s.id===campaign.screenId)||!finite(campaign.budget)||campaign.budget<0||campaign.start<0||campaign.end<=campaign.start||campaign.end>DURATION)throw new Error('Campaign target, screen, window and budget must be valid.');}
 }
 function schedule(scenario:Scenario):{births:Birth[];trains:Train[]}{
- const births:Birth[]=[];
- for(let slot=0;slot<1200;slot++)if(draw(scenario.seed,slot,'background-inclusion')<.65)births.push({id:slot+1,time:slot*3+draw(scenario.seed,slot,'background-time')*2.8});
- const trains:Train[]=buildTrainSchedule(scenario).map(train=>({...train,count:train.authored?65+Math.floor(draw(scenario.seed,train.id,'alighting-count')*21):Math.round(bounded(scenario.events.find(e=>`event:${e.id}`===train.identity)!.magnitude,0,1500))}));
- for(const train of trains)for(let n=0;n<train.count;n++){const identity=train.identity,base=train.authored?10000+Number(train.id.slice(6))*2000:1000000000+Math.floor(draw(scenario.seed,identity,'event-identity')*4294967296)*2048;const time=train.start+(n+.15+draw(scenario.seed,`${identity}|${n}`,'wave-time')*.7)/Math.max(1,train.count)*train.spread;if(time<DURATION)births.push({id:base+n,time,platform:train.platform});}
+ // These are planning assumptions. Omitted crowd retains the original version-1 demand schedule.
+ const multiplier=scenario.crowd==='normal'?1.6:scenario.crowd==='busy'?2.8:1,births:Birth[]=[],slots=Math.round(1200*multiplier);
+ for(let slot=0;slot<slots;slot++)if(draw(scenario.seed,slot,'background-inclusion')<.65)births.push({id:slot+1,time:(slot*3+draw(scenario.seed,slot,'background-time')*2.8)/multiplier});
+ const trains:Train[]=buildTrainSchedule(scenario).map(train=>({...train,count:train.authored?Math.round((65+Math.floor(draw(scenario.seed,train.id,'alighting-count')*21))*multiplier):Math.round(bounded(scenario.events.find(e=>`event:${e.id}`===train.identity)!.magnitude,0,1500))}));
+ for(const train of trains)for(let n=0;n<train.count;n++){const identity=train.identity,base=train.authored?10000+Number(train.id.slice(6))*2000:1000000000+Math.floor(draw(scenario.seed,identity,'event-identity')*4294967296)*2048;const time=train.start+(n+.15+draw(scenario.seed,`${identity}|${n}`,'wave-time')*.7)/Math.max(1,train.count)*train.spread;if(time<DURATION)births.push({id:base+n,time,platform:train.platform,door:n%TRAIN_DOOR_X.length});}
  births.sort((a,b)=>a.time-b.time||a.id-b.id);trains.sort((a,b)=>a.start-b.start);return {births,trains};
 }
 
@@ -79,8 +81,15 @@ export function simulate(input:Scenario):SimulationResult{
   }}
  };
  const depart=(agent:Agent,origin:Point,time:number)=>{
-  const route=router.route(origin,agent.destination,time,agent.speed);addRoute(agent,route);let end=route.end;
-  if(agent.boarding){const platform=agent.destination.z>14?1:0,train=trains.find(t=>t.platform===platform&&t.start+t.dwell>=end+8);const leave=train?Math.max(end+8,train.start+train.dwell-8):end+90;stationary(agent,end,leave,agent.destination,'browsing');const door={...agent.destination,z:agent.destination.z+.7};agent.segments.push({start:leave,end:leave+6,from:{...agent.destination},to:door,state:'walking'});end=leave+6;}
+  const route=router.route(origin,agent.destination,time,agent.speed,agent.lane);addRoute(agent,route);let end=route.end;
+  if(agent.boarding){
+   const platform=agent.destination.z>14?1:0,train=trains.find(t=>t.platform===platform&&t.start+t.dwell>=end+8),leave=train?Math.max(end+8,train.start+train.dwell-8):end+90;
+   stationary(agent,end,leave,agent.destination,'browsing');const door=agent.boardingDoor!;
+   // The last door is beside the bridge stairs. Approach it along the clear rail-side strip.
+   const points=door.x>20.85?[agent.destination,{...agent.destination,z:platform===0?10.38:17},door]:[agent.destination,door],length=points.slice(1).reduce((total,point,index)=>total+distance(points[index],point),0);let time=leave;
+   for(let index=1;index<points.length;index++){const next=time+6*distance(points[index-1],points[index])/length;move(agent,time,next,points[index-1],points[index],'walking');time=next;}
+   end=leave+6;
+  }
   agent.depart=end;
  };
  const leaveDoor=(agent:Agent,shop:Shop,time:number)=>{const clear=time+distance(shop.entry,shop.front)/agent.speed;move(agent,time,clear,shop.entry,shop.front,'walking',shop.tenant.id);events.push(clear,()=>depart(agent,shop.front,clear));};
@@ -113,12 +122,12 @@ export function simulate(input:Scenario):SimulationResult{
   return Math.min(.75,lift);
  };
  const spawn=(birth:Birth)=>{
-  const fromTrain=birth.platform!==undefined,side=draw(scenario.seed,birth.id,'origin-side')<.57,origin=fromTrain?router.point(birth.platform===0?'PA':'PB'):router.point(side?'W':'E'),boarding=!fromTrain&&draw(scenario.seed,birth.id,'boarding-journey')<.32,destination=boarding?router.point(draw(scenario.seed,birth.id,'boarding-platform')<.5?'PA':'PB'):router.point(fromTrain?(side?'W':'E'):(side?'E':'W'));
-  const agent:Agent={id:birth.id,born:birth.time,depart:Infinity,origin,destination,boarding,speed:.85+draw(scenario.seed,birth.id,'walking-speed')*.5,color:Math.floor(draw(scenario.seed,birth.id,'visual-color')*6),segments:[],passing:new Set(),screens:new Map()};agents.push(agent);
-  const normal=router.route(origin,destination,birth.time,agent.speed),options:{shop:Shop;weight:number;route:Route}[]=[];
+  const fromTrain=birth.platform!==undefined,side=draw(scenario.seed,birth.id,'origin-side')<.57,lane=(Math.floor(draw(scenario.seed,birth.id,'corridor-lane')*7)-3)*.2,boarding=!fromTrain&&draw(scenario.seed,birth.id,'boarding-journey')<.32,platform=boarding?(draw(scenario.seed,birth.id,'boarding-platform')<.5?0:1):birth.platform??0,doorIndex=birth.door??Math.floor(draw(scenario.seed,birth.id,'boarding-door')*TRAIN_DOOR_X.length),door={x:TRAIN_DOOR_X[doorIndex]+(draw(scenario.seed,birth.id,'door-position')-.5)*.3,y:0,z:PLATFORM_FLOW[platform].doorZ},waiting={x:Math.min(19.45,TRAIN_DOOR_X[doorIndex])+(draw(scenario.seed,birth.id,'waiting-position')-.5)*2.8,y:0,z:PLATFORM_FLOW[platform].waitRows[Math.floor(draw(scenario.seed,birth.id,'waiting-row')*3)]},origin=fromTrain?door:router.point(side?'W':'E',lane),destination=boarding?waiting:router.point(fromTrain?(side?'W':'E'):(side?'E':'W'),lane);
+  const agent:Agent={id:birth.id,born:birth.time,depart:Infinity,origin,destination,boarding,...(boarding?{boardingDoor:door}:{}),lane,speed:.85+draw(scenario.seed,birth.id,'walking-speed')*.5,color:Math.floor(draw(scenario.seed,birth.id,'visual-color')*6),segments:[],passing:new Set(),screens:new Map()};agents.push(agent);
+  const normal=router.route(origin,destination,birth.time,agent.speed,agent.lane),options:{shop:Shop;weight:number;route:Route}[]=[];
   for(const shop of shops.values()){
    let nearest=Infinity;for(const leg of normal.legs)if(leg.from.y===1&&leg.to.y===1)nearest=Math.min(nearest,nearestOnLeg(shop.front,leg).distance);if(nearest>5.8)continue;
-   const route=router.route(origin,shop.front,birth.time,agent.speed);if(!isOpen(shop.tenant,route.end))continue;
+   const route=router.route(origin,shop.front,birth.time,agent.speed,agent.lane);if(!isOpen(shop.tenant,route.end))continue;
    const parameter=CATEGORIES[shop.tenant.category],substitutes=[...shops.values()].filter(o=>o.tenant.category===shop.tenant.category&&distance(o.front,shop.front)<15).length,journey=boarding?.72:fromTrain?1.05:1,weight=parameter.attraction*router.unit(shop.tenant).fit*journey*(1-nearest/8)/Math.sqrt(substitutes)*(1+campaignLift(shop.tenant,agent,normal,birth.time,route.end+distance(shop.front,shop.entry)/agent.speed));if(weight>0)options.push({shop,weight,route});
   }
   const sum=options.reduce((n,o)=>n+o.weight,0),probability=Math.min(.58,1-Math.exp(-sum*1.28));
@@ -147,13 +156,15 @@ export function simulate(input:Scenario):SimulationResult{
   const result:Metrics={start,end,arrivals:births.filter(b=>inWindow(b.time,start,end)).length,departed:agents.filter(a=>inWindow(a.depart,start,end)).length,present,visits:tenants.reduce((n,t)=>n+t.visits,0),transactions:tenants.reduce((n,t)=>n+t.transactions,0),sales:tenants.reduce((n,t)=>n+t.sales,0),contribution:tenants.reduce((n,t)=>n+t.contribution,0),waitMean:mean(waitTimes),waitP90:p90(waitTimes),abandoned:tenants.reduce((n,t)=>n+t.abandoned,0),exposure:eligibleExposure.length,qualifiedExposure:eligibleExposure.filter(qualified).length,tenants};
   metricCache.set(cacheKey,result);if(metricCache.size>32)metricCache.delete(metricCache.keys().next().value!);return result;
  };
+ const snapshotCache=new Map<number,Snapshot>();
  const snapshot=(requestedTime:number):Snapshot=>{
-  const time=bounded(finite(requestedTime)?requestedTime:0,0,DURATION),samples:AgentSample[]=[],queues:Record<string,number>={},queued=new Map<number,{shop:Shop;index:number;join:number}>();
+  const time=bounded(finite(requestedTime)?requestedTime:0,0,DURATION),previous=snapshotCache.get(time);if(previous)return previous;
+  const samples:AgentSample[]=[],queues:Record<string,number>={},queued=new Map<number,{shop:Shop;index:number;join:number}>();
   for(const shop of shops.values()){const waiting=queueAt(shop.tenant.id,time).sort((a,b)=>a.join!-b.join!||a.id-b.id);queues[shop.tenant.id]=waiting.length;waiting.forEach((v,index)=>queued.set(v.agent.id,{shop,index,join:v.join!}));}
   for(const agent of agents){if(!activeAgent(agent,time))continue;let lo=0,hi=agent.segments.length-1;while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(agent.segments[mid].start<time)lo=mid;else hi=mid-1;}const segment=agent.segments[lo];if(!segment)continue;const fraction=bounded((time-segment.start)/Math.max(.0001,segment.end-segment.start),0,1);let x=segment.from.x+(segment.to.x-segment.from.x)*fraction,y=segment.from.y+(segment.to.y-segment.from.y)*fraction,z=segment.from.z+(segment.to.z-segment.from.z)*fraction;const queue=queued.get(agent.id);if(queue){const target=queuePosition(queue.shop,queue.index),walk=distance(queue.shop.front,target)/agent.speed,progress=bounded((time-queue.join)/Math.max(.001,walk),0,1);x=queue.shop.front.x+(target.x-queue.shop.front.x)*progress;z=queue.shop.front.z+(target.z-queue.shop.front.z)*progress;}samples.push({id:agent.id,x,y,z,angle:Math.atan2(segment.to.x-segment.from.x,segment.to.z-segment.from.z),color:agent.color,state:queue?'queue':segment.state,...(segment.tenantId?{tenantId:segment.tenantId}:{})});}
   const visible:NonNullable<Snapshot['trains']>=[];for(const scheduled of trains){if(time>=scheduled.start-TRAIN_APPROACH_SECONDS&&time<scheduled.start)visible.push({id:scheduled.id,phase:'approaching',progress:(time-(scheduled.start-TRAIN_APPROACH_SECONDS))/TRAIN_APPROACH_SECONDS,platform:scheduled.platform});else if(time>=scheduled.start&&time<scheduled.start+scheduled.dwell)visible.push({id:scheduled.id,phase:'dwell',progress:(time-scheduled.start)/scheduled.dwell,platform:scheduled.platform});else if(time>=scheduled.start+scheduled.dwell&&time<scheduled.start+scheduled.dwell+TRAIN_DEPARTURE_SECONDS)visible.push({id:scheduled.id,phase:'departing',progress:(time-scheduled.start-scheduled.dwell)/TRAIN_DEPARTURE_SECONDS,platform:scheduled.platform});}
   visible.sort((a,b)=>a.platform-b.platform);const primary=visible[0];const train:Snapshot['train']=primary?{phase:primary.phase,progress:primary.progress,platform:primary.platform}:{phase:'absent',progress:0,platform:0};
-  return {time,agents:samples,present:samples.length,queues,train,trains:visible};
+  const captured=immutable({time,agents:samples,present:samples.length,queues,train,trains:visible});snapshotCache.set(time,captured);if(snapshotCache.size>8)snapshotCache.delete(snapshotCache.keys().next().value!);return captured;
  };
  const buckets:Bucket[]=[];for(let time=0;time<DURATION;time+=300){const m=metrics(time,time+300);buckets.push({time,arrivals:m.arrivals,present:m.present,visits:m.visits,sales:m.sales,waitMean:m.waitMean});}
  const result:SimulationResult={scenario,duration:DURATION,snapshot,metrics,buckets};resultCache.set(key,result);if(resultCache.size>6)resultCache.delete(resultCache.keys().next().value!);return result;
@@ -174,5 +185,6 @@ export function createStressScenario(scenario:Scenario):Scenario{
 }
 export function compareScenarios(scenario:Scenario,start=0,end=DURATION):Comparison{
  const baseline=structuredClone(BASELINE);baseline.seed=scenario.seed;
+ if(scenario.crowd===undefined)delete baseline.crowd;else baseline.crowd=scenario.crowd;
  return {baseline:simulate(baseline).metrics(start,end),proposed:simulate(structuredClone(scenario)).metrics(start,end),stress:simulate(createStressScenario(scenario)).metrics(start,end)};
 }

@@ -1,13 +1,14 @@
 import type {Scenario,ScenarioEvent,Tenant,Unit} from '../domain/types';
-import {UNITS} from '../data/station';
+import {PLATFORM_FLOW,UNITS} from '../data/station';
 import {shopTransform} from '../domain/shopGeometry';
 export interface Point{x:number;y:number;z:number;}
 export interface Leg{from:Point;to:Point;start:number;end:number;}
 export interface Route{legs:Leg[];end:number;}
 const p=(x:number,z:number,y=1):Point=>({x,y,z});
-const nodes:Record<string,Point>={W:p(-28,-2.8),N1:p(-19,-2.8),N2:p(-10,-2.8),N3:p(-1,-2.8),N4:p(8,-2.8),N5:p(17,-2.8),E:p(28,-2.8),B1:p(-10,4.2),B2:p(8,4.2),G:p(12,-2.8),Gate:p(12,4.5),Stair:p(8,6),Down:p(8,9,0),PA:p(-6,10,0),BridgeBase:p(21.4,8.8,0),BridgeStart:p(26,8.8,2.65),BridgeEnd:p(26,18.5,2.65),BridgeFar:p(21.4,18.5,0),PB:p(5,17.5,0)};
+// Fixed gate turns clear the pedestal bank before heading to the stairs or completing the bypass.
+const nodes:Record<string,Point>={W:p(-28,-2.8),N1:p(-19,-2.8),N2:p(-10,-2.8),N3:p(-1,-2.8),N4:p(8,-2.8),N5:p(17,-2.8),E:p(28,-2.8),B1:p(-10,4.2),BypassUpper:p(6.7,4.2),BypassLower:p(6.7,3.05),B2:p(8,3.05),G:p(12,-2.8),Gate:p(12,4.5),GateOut:p(12,5.05),Stair:p(8,6),Down:p(8,9,0),PA:p(-6,10,0),BridgeBase:p(20.85,8.8,0),BridgeStart:p(26,8.8,2.65),BridgeEnd:p(26,18.5,2.65),BridgeFar:p(20.85,18.5,0),PB:p(5,17.5,0)};
 interface Edge{from:string;to:string;central?:boolean;}
-const edges:Edge[]=[{from:'W',to:'N1'},{from:'N1',to:'N2'},{from:'N2',to:'N3'},{from:'N3',to:'N4',central:true},{from:'N4',to:'G'},{from:'G',to:'N5'},{from:'N5',to:'E'},{from:'N2',to:'B1'},{from:'B1',to:'B2'},{from:'B2',to:'N4'},{from:'G',to:'Gate'},{from:'Gate',to:'Stair'},{from:'Stair',to:'Down'},{from:'Down',to:'PA'},{from:'Down',to:'BridgeBase'},{from:'BridgeBase',to:'BridgeStart'},{from:'BridgeStart',to:'BridgeEnd'},{from:'BridgeEnd',to:'BridgeFar'},{from:'BridgeFar',to:'PB'}];
+const edges:Edge[]=[{from:'W',to:'N1'},{from:'N1',to:'N2'},{from:'N2',to:'N3'},{from:'N3',to:'N4',central:true},{from:'N4',to:'G'},{from:'G',to:'N5'},{from:'N5',to:'E'},{from:'N2',to:'B1'},{from:'B1',to:'BypassUpper'},{from:'BypassUpper',to:'BypassLower'},{from:'BypassLower',to:'B2'},{from:'B2',to:'N4'},{from:'G',to:'Gate'},{from:'Gate',to:'GateOut'},{from:'GateOut',to:'Stair'},{from:'Stair',to:'Down'},{from:'Down',to:'PA'},{from:'Down',to:'BridgeBase'},{from:'BridgeBase',to:'BridgeStart'},{from:'BridgeStart',to:'BridgeEnd'},{from:'BridgeEnd',to:'BridgeFar'},{from:'BridgeFar',to:'PB'}];
 export const ROUTE_CLOSURE_IDS=['central-route','spine-mid__spine-east','main-route','concourse'] as const;
 export function eventActive(event:ScenarioEvent,time:number){return time>=event.start&&time<event.start+event.duration;}
 export function distance(a:Point,b:Point){return Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);}
@@ -26,20 +27,28 @@ export function visibilityOnLeg(point:Point,leg:Leg,radius=4.5):{start:number;en
 /** Cached graph paths. Platform access occurs only through the authored gate and stairs. */
 export class Router{
  private paths=new Map<string,string[]>();private connectors=new Map<string,Point[]>();constructor(private scenario:Scenario){}
- point(id:string){return {...nodes[id]};}
+ point(id:string,lane=0){const point={...nodes[id]};if(point.y===1&&point.z===-2.8)point.z+=Math.max(-.6,Math.min(.6,lane));return point;}
  rain(time:number){return Math.min(1,this.scenario.events.filter(e=>e.type==='rain'&&eventActive(e,time)).reduce((n,e)=>n+e.magnitude,0));}
- route(origin:Point,destination:Point,start:number,speed:number):Route{
+ route(origin:Point,destination:Point,start:number,speed:number,lane=0):Route{
   const from=this.nearest(origin),to=this.nearest(destination);let time=start;const legs:Leg[]=[];
   const add=(a:Point,b:Point)=>{if(distance(a,b)<.01)return;const seconds=distance(a,b)/(speed*(1-.18*this.rain(time)));legs.push({from:{...a},to:{...b},start:time,end:time+seconds});time+=seconds;};
-  const connect=(a:Point,b:Point)=>{const points=this.connector(a,b);for(let i=1;i<points.length;i++)add(points[i-1],points[i]);};
-  connect(origin,nodes[from]);let current=from,hops=0;
-  while(current!==to&&hops++<50){const path=this.path(current,to,this.closed(time)),next=path[1];if(!next)throw new Error('Required station route is inaccessible.');const a=nodes[current],b=nodes[next],wet=this.rain(time);if(a.y===1&&b.y===1&&a.z===-2.8&&b.z===-2.8&&wet>0){const offset=-.65*wet;add(a,{...a,z:a.z+offset});add({...a,z:a.z+offset},{...b,z:b.z+offset});add({...b,z:b.z+offset},b);}else add(a,b);current=next;}
-  connect(nodes[to],destination);return {legs,end:time};
+  const connect=(a:Point,b:Point)=>{const points=this.connector(a,b,lane);for(let i=1;i<points.length;i++)add(points[i-1],points[i]);};
+  const node=(id:string)=>{const point=this.point(id,lane);if(point.y===1&&nodes[id].z===-2.8)point.z-=.65*this.rain(time);return point;};
+  let position=node(from);connect(origin,position);let current=from,hops=0;
+  while(current!==to&&hops++<50){const path=this.path(current,to,this.closed(time)),next=path[1];if(!next)throw new Error('Required station route is inaccessible.');const target=node(next);connect(position,target);position=target;current=next;}
+  connect(position,destination);return {legs,end:time};
  }
  unit(tenant:Tenant){return UNITS.find(u=>u.id===tenant.unitId)!;}
- private nearest(point:Point){let best='W',score=Infinity;for(const [id,node] of Object.entries(nodes)){if(node.y!==point.y)continue;const d=distance(point,node);if(d<score){score=d;best=id;}}return best;}
+ private nearest(point:Point){let best='W',score=Infinity;for(const [id,node] of Object.entries(nodes)){if(node.y!==point.y||(point.y===0&&(point.z>14)!==(node.z>14)))continue;const d=distance(point,node);if(d<score){score=d;best=id;}}return best;}
  private closed(time:number){return this.scenario.events.some(e=>e.type==='closure'&&(ROUTE_CLOSURE_IDS as readonly string[]).includes(e.target??'central-route')&&eventActive(e,time));}
- private connector(a:Point,b:Point):Point[]{
+ private connector(a:Point,b:Point,lane=0):Point[]{
+  if(a.y===0&&b.y===0){
+   if((a.z>14)!==(b.z>14))throw new Error('Platform transfers require the authored bridge.');
+   const z=PLATFORM_FLOW[a.z>14?1:0].laneZ+Math.max(-.6,Math.min(.6,lane))*.3;
+   // Approach the bridge stair bases from their west ends; walking under their treads is forbidden.
+   const left=(point:Point)=>point.x>20.85?{...point,x:20.85}:point,first=left(a),last=left(b);
+   return [a,first,{...first,z},{...last,z},last,b];
+  }
   if(a.y!==1||b.y!==1)return [a,b];
   const key=`${a.x},${a.z}|${b.x},${b.z}`,cached=this.connectors.get(key);if(cached)return cached;
   const obstacles=this.scenario.tenants.map(t=>shopTransform(this.unit(t),t).bounds).map(b=>({minX:b.minX-.3,maxX:b.maxX+.3,minZ:b.minZ-.3,maxZ:b.maxZ+.3}));

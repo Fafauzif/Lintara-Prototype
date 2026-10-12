@@ -44,3 +44,7 @@ The permitted cloud browser could not open the local live preview, and its secur
 ## Final guide checks
 
 The final guide has 16 editable slides and a matching 16-page PDF. All pages were visually inspected, including the revised palette, background-use and original scene-illustration pages. The final PPTX contains 189 native text objects, one native chart with an embedded XLSX snapshot, one native table and 27 SVG assets. Package, layout, font, native-chart and first-party reimport gates passed with zero findings. PDF metadata names Lintara and the guide title. No native PowerPoint opening or browser capture is claimed.
+
+## Revision 1.1 application handoff
+
+The identity masters and 16-slide guide are unchanged. The guide is the original identity document; its application specification pages and original version-1 illustration are not newly captured version-1.1 screens. Revision 1.1 adds close Hall framing, direct placement, live 2D/mobile planning and three graphics presets. The newly generated bundled scene illustration reflects the revised authored model and Hall camera, while actual final WebGL/application captures remain unavailable.

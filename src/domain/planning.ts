@@ -72,6 +72,10 @@ export function validateScenario(input:unknown):Scenario {
   const source=object(input,'Scenario');
   if(source.version!==1)throw new Error('Unsupported scenario version. Import a version 1 Lintara plan.');
   const scenario:Scenario={version:1,id:id(source.id,'Scenario ID'),name:string(source.name,'Scenario name'),seed:finite(source.seed,'Seed',0,4294967295,true),tenants:[],events:[],campaigns:[]};
+  if(source.crowd!==undefined){
+    if(source.crowd!=='normal'&&source.crowd!=='busy')throw new Error('Crowd demand must be normal or busy.');
+    scenario.crowd=source.crowd;
+  }
   const tenants=list(source.tenants,'Tenants',UNITS.length);
   for(const [index,value] of tenants.entries()){
     const data=object(value,`Tenant ${index+1}`);

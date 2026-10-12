@@ -10,6 +10,8 @@
     "hostMemoryGiB": 9.734
   },
   "configuration": {
+    "crowd": "normal",
+    "snapshotCacheLimitPerResult": 8,
     "seed": 20261012,
     "durationSeconds": 3600,
     "shops": 4,
@@ -18,88 +20,88 @@
   },
   "simulationCold": {
     "samples": 12,
-    "medianMs": 96.52,
-    "p95Ms": 176.97,
-    "maxMs": 176.97
+    "medianMs": 232.437,
+    "p95Ms": 407.112,
+    "maxMs": 407.112
   },
-  "stressSimulationMs": 186.249,
+  "stressSimulationMs": 371.901,
   "randomSeek": {
     "samples": 1000,
-    "medianMs": 0.064,
-    "p95Ms": 0.199,
-    "maxMs": 2.891
+    "medianMs": 0.212,
+    "p95Ms": 0.419,
+    "maxMs": 8.95
   },
   "reportQuery": {
     "samples": 100,
-    "medianMs": 1.752,
-    "p95Ms": 2.141,
-    "maxMs": 3.656
+    "medianMs": 2.414,
+    "p95Ms": 4.932,
+    "maxMs": 8.154
   },
-  "comparisonMs": 6.789,
+  "comparisonMs": 16.305,
   "demand": {
-    "arrivals": 1226,
-    "departed": 1188,
-    "presentAtEnd": 38,
-    "peakPresentObserved": 167,
+    "arrivals": 1955,
+    "departed": 1895,
+    "presentAtEnd": 60,
+    "peakPresentObserved": 255,
     "seekSamples": 1000,
-    "agentsReadAcrossSeeks": 73709,
-    "visits": 455,
-    "transactions": 346,
-    "waitMeanMinutes": 1.071,
-    "waitP90Minutes": 2.466
+    "agentsReadAcrossSeeks": 118484,
+    "visits": 634,
+    "transactions": 402,
+    "waitMeanMinutes": 1.602,
+    "waitP90Minutes": 2.985
   },
   "finance": {
-    "salesIdr": 10201500,
-    "contributionIdr": 4892583,
+    "salesIdr": 11981900,
+    "contributionIdr": 5657281,
     "tenants": [
       {
         "id": "T1",
-        "transactions": 115,
-        "sales": 2518400,
-        "grossMargin": 1460672,
+        "transactions": 130,
+        "sales": 2864200,
+        "grossMargin": 1661236,
         "labor": 48000,
         "occupancy": 20000,
         "campaign": 0,
-        "contribution": 1392672
+        "contribution": 1593236
       },
       {
         "id": "T2",
         "transactions": 82,
-        "sales": 2301500,
-        "grossMargin": 1518990,
+        "sales": 2316200,
+        "grossMargin": 1528692,
         "labor": 52000,
         "occupancy": 24167,
         "campaign": 0,
-        "contribution": 1442823
+        "contribution": 1452525
       },
       {
         "id": "T3",
-        "transactions": 77,
-        "sales": 2943600,
-        "grossMargin": 1412928,
+        "transactions": 94,
+        "sales": 3569000,
+        "grossMargin": 1713120,
         "labor": 50000,
         "occupancy": 22083,
         "campaign": 0,
-        "contribution": 1340845
+        "contribution": 1641037
       },
       {
         "id": "T4",
-        "transactions": 72,
-        "sales": 2438000,
-        "grossMargin": 780160,
+        "transactions": 96,
+        "sales": 3232500,
+        "grossMargin": 1034400,
         "labor": 46000,
         "occupancy": 17917,
         "campaign": 0,
-        "contribution": 716243
+        "contribution": 970483
       }
     ]
   },
   "memory": {
     "collectionRequested": true,
-    "heapBeforeCollectionMiB": 136.695,
-    "heapGrowthMiB": 45.166,
-    "heapUsedMiB": 55.117,
-    "rssMiB": 289.203,
+    "heapBeforeCollectionMiB": 277.902,
+    "heapGrowthMiB": 83.952,
+    "heapUsedMiB": 94.039,
+    "rssMiB": 458.711,
     "note": "Heap after explicit GC retains the bounded model caches."
   },
   "conservationPassed": true
