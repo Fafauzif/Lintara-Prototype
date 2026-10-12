@@ -1,0 +1,106 @@
+{
+  "type": "renderer-independent model benchmark",
+  "caveat": "CPU and Node memory evidence only. This does not establish browser GPU FPS on an 8 GB integrated-graphics laptop.",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "release": "6.18.44",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "hostMemoryGiB": 9.734
+  },
+  "configuration": {
+    "seed": 20261012,
+    "durationSeconds": 3600,
+    "shops": 4,
+    "resultCacheLimit": 6,
+    "metricCacheLimitPerResult": 32
+  },
+  "simulationCold": {
+    "samples": 12,
+    "medianMs": 96.52,
+    "p95Ms": 176.97,
+    "maxMs": 176.97
+  },
+  "stressSimulationMs": 186.249,
+  "randomSeek": {
+    "samples": 1000,
+    "medianMs": 0.064,
+    "p95Ms": 0.199,
+    "maxMs": 2.891
+  },
+  "reportQuery": {
+    "samples": 100,
+    "medianMs": 1.752,
+    "p95Ms": 2.141,
+    "maxMs": 3.656
+  },
+  "comparisonMs": 6.789,
+  "demand": {
+    "arrivals": 1226,
+    "departed": 1188,
+    "presentAtEnd": 38,
+    "peakPresentObserved": 167,
+    "seekSamples": 1000,
+    "agentsReadAcrossSeeks": 73709,
+    "visits": 455,
+    "transactions": 346,
+    "waitMeanMinutes": 1.071,
+    "waitP90Minutes": 2.466
+  },
+  "finance": {
+    "salesIdr": 10201500,
+    "contributionIdr": 4892583,
+    "tenants": [
+      {
+        "id": "T1",
+        "transactions": 115,
+        "sales": 2518400,
+        "grossMargin": 1460672,
+        "labor": 48000,
+        "occupancy": 20000,
+        "campaign": 0,
+        "contribution": 1392672
+      },
+      {
+        "id": "T2",
+        "transactions": 82,
+        "sales": 2301500,
+        "grossMargin": 1518990,
+        "labor": 52000,
+        "occupancy": 24167,
+        "campaign": 0,
+        "contribution": 1442823
+      },
+      {
+        "id": "T3",
+        "transactions": 77,
+        "sales": 2943600,
+        "grossMargin": 1412928,
+        "labor": 50000,
+        "occupancy": 22083,
+        "campaign": 0,
+        "contribution": 1340845
+      },
+      {
+        "id": "T4",
+        "transactions": 72,
+        "sales": 2438000,
+        "grossMargin": 780160,
+        "labor": 46000,
+        "occupancy": 17917,
+        "campaign": 0,
+        "contribution": 716243
+      }
+    ]
+  },
+  "memory": {
+    "collectionRequested": true,
+    "heapBeforeCollectionMiB": 136.695,
+    "heapGrowthMiB": 45.166,
+    "heapUsedMiB": 55.117,
+    "rssMiB": 289.203,
+    "note": "Heap after explicit GC retains the bounded model caches."
+  },
+  "conservationPassed": true
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Lintara",
+  "descriptor": {
+    "en": "Station Intelligence",
+    "id": "Inteligensi Stasiun"
+  },
+  "colors": {
+    "navy": "#243B75",
+    "orange": "#F47B20",
+    "background": "#F5F7FB",
+    "ink": "#17233D",
+    "muted": "#667085",
+    "positive": "#21866B",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "family": "Arial, sans-serif",
+    "weights": [
+      400,
+      600,
+      700
+    ],
+    "wordmark": "Outlined DejaVu Sans Bold with custom tracking"
+  },
+  "logo": {
+    "symbolViewBox": "0 0 104 104",
+    "clearSpaceUnit": 14,
+    "minimumSymbolPx": 24,
+    "minimumHorizontalPx": 128,
+    "minimumHorizontalPrintMm": 28
+  }
+}
