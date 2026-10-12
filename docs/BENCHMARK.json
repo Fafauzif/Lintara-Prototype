@@ -20,24 +20,24 @@
   },
   "simulationCold": {
     "samples": 12,
-    "medianMs": 232.437,
-    "p95Ms": 407.112,
-    "maxMs": 407.112
+    "medianMs": 174.84,
+    "p95Ms": 232.133,
+    "maxMs": 232.133
   },
-  "stressSimulationMs": 371.901,
+  "stressSimulationMs": 256.277,
   "randomSeek": {
     "samples": 1000,
-    "medianMs": 0.212,
-    "p95Ms": 0.419,
-    "maxMs": 8.95
+    "medianMs": 0.148,
+    "p95Ms": 0.368,
+    "maxMs": 5.546
   },
   "reportQuery": {
     "samples": 100,
-    "medianMs": 2.414,
-    "p95Ms": 4.932,
-    "maxMs": 8.154
+    "medianMs": 1.455,
+    "p95Ms": 2.135,
+    "maxMs": 3.866
   },
-  "comparisonMs": 16.305,
+  "comparisonMs": 9.221,
   "demand": {
     "arrivals": 1955,
     "departed": 1895,
@@ -98,10 +98,10 @@
   },
   "memory": {
     "collectionRequested": true,
-    "heapBeforeCollectionMiB": 277.902,
-    "heapGrowthMiB": 83.952,
-    "heapUsedMiB": 94.039,
-    "rssMiB": 458.711,
+    "heapBeforeCollectionMiB": 261.438,
+    "heapGrowthMiB": 83.974,
+    "heapUsedMiB": 94.12,
+    "rssMiB": 441.695,
     "note": "Heap after explicit GC retains the bounded model caches."
   },
   "conservationPassed": true

@@ -14,7 +14,7 @@ Actual DPR is `min(devicePixelRatio, preset ceiling)`. Standard is the existing 
 
 Lite reduces pixel work, passenger geometry and passenger lighting, and removes shadow rendering. High supplies finer curved silhouettes and higher resolution/shadow detail. It does not add arms, legs or additional agents. Passenger instances currently do not cast shadows; the larger High shadow map benefits existing static station/shop shadows. Static station construction, camera controls and simulation remain shared. Antialiasing remains enabled on the renderer.
 
-The internal enum names are unchanged for compatible callers: `low` → Lite, `balanced` → Standard, `high` → High. The UI defaults to Standard. The exact profile source is [quality.ts](../src/scene/quality.ts).
+The internal enum names are unchanged for compatible callers: `low` → Lite, `balanced` → Standard, `high` → High. The UI defaults to Standard. Version1.2 exposes all three presets directly beside Operator/Tenant in the header; they are not under Layers. The exact profile source is [quality.ts](../src/scene/quality.ts).
 
 ## Every eligible person, with explicit overflow
 

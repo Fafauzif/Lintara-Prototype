@@ -1,6 +1,7 @@
 import type {Category,CategoryParameters,Scenario,Unit} from '../domain/types';
 export const DURATION=3600;
 export const OPENING_TIME=1460;
+/** Legacy/default hour only. Scenario-aware clocks use startHourOf instead. */
 export const START_HOUR=7;
 /** Authored four-car train: two platform-facing doors per car (scene/station.ts). */
 export const TRAIN_DOOR_X=Object.freeze([-21.5,-15.1,-9.3,-2.9,2.9,9.3,15.1,21.5]);

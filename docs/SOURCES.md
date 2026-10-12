@@ -59,3 +59,7 @@ At the research-stage check, Node was `v24.19.0`; `playwright-cli`, `chromium` a
 ## Evidence rules
 
 Use real URLs and stated dates. Keep direct observations, inferences and authored choices separate in `RECONSTRUCTION.md`. Do not turn a search thumbnail, a dated construction proposal, or a neighboring station's plan into a certified current layout. No external photo assets or full guideline texts were redistributed in runtime files during this research stage.
+
+## Interface review reference
+
+[Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md) were consulted for labeled controls, focus/gesture alternatives, truthful UI copy, target sizes and numeric readability in the1.2 revision. These rules are UI guidance, not verification of rendered browser behavior or a source of traffic/revenue data.

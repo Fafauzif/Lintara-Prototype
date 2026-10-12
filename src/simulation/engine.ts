@@ -1,6 +1,7 @@
 import type {AgentSample,Bucket,Campaign,Comparison,Metrics,Scenario,SimulationResult,Snapshot,Tenant,TenantMetrics} from '../domain/types';
 import {BASELINE,CATEGORIES,DURATION,PLATFORM_FLOW,SCREENS,TRAIN_DOOR_X,UNITS} from '../data/station';
 import {shopTransform} from '../domain/shopGeometry';
+import {periodProfile,validatePeriodContext} from '../domain/period';
 import {canPlace} from '../domain/planning';
 import {buildTrainSchedule,checkTrainConflicts,TRAIN_APPROACH_SECONDS,TRAIN_DEPARTURE_SECONDS} from '../domain/trainSchedule';
 import type {TrainScheduleEntry} from '../domain/trainSchedule';
@@ -28,6 +29,7 @@ function immutable<T>(value:T):T{if(value&&typeof value==='object'){for(const ch
 
 function validate(scenario:Scenario){
  if(scenario.version!==1||!finite(scenario.seed))throw new Error('Unsupported scenario version or seed.');
+ validatePeriodContext(scenario);
  if(scenario.crowd!==undefined&&scenario.crowd!=='normal'&&scenario.crowd!=='busy')throw new Error('Crowd demand must be normal or busy.');
  const occupied=new Set<string>(),ids=new Set<string>();
  for(const tenant of scenario.tenants){
@@ -42,6 +44,8 @@ function validate(scenario:Scenario){
   if(tenant.serviceSeconds!==undefined&&(!finite(tenant.serviceSeconds)||tenant.serviceSeconds<5||tenant.serviceSeconds>600))throw new Error('Service duration must be 5–600 seconds.');
   if(tenant.margin!==undefined&&(!finite(tenant.margin)||tenant.margin<0||tenant.margin>1))throw new Error('Gross margin must be between 0 and 1.');
   if(tenant.occupancyPerDay!==undefined&&(!finite(tenant.occupancyPerDay)||tenant.occupancyPerDay<0))throw new Error('Occupancy cost must be nonnegative.');
+  if(tenant.wagePerHour!==undefined&&(!finite(tenant.wagePerHour)||tenant.wagePerHour<0||tenant.wagePerHour>1000000))throw new Error('Tenant wage per hour must be between 0 and 1000000.');
+  if(tenant.purchaseProbability!==undefined&&(!finite(tenant.purchaseProbability)||tenant.purchaseProbability<0||tenant.purchaseProbability>1))throw new Error('Tenant purchase probability must be between 0 and 1.');
   occupied.add(unit.id);ids.add(tenant.id);
  }
  for(const event of scenario.events){
@@ -53,9 +57,9 @@ function validate(scenario:Scenario){
 }
 function schedule(scenario:Scenario):{births:Birth[];trains:Train[]}{
  // These are planning assumptions. Omitted crowd retains the original version-1 demand schedule.
- const multiplier=scenario.crowd==='normal'?1.6:scenario.crowd==='busy'?2.8:1,births:Birth[]=[],slots=Math.round(1200*multiplier);
+ const profile=periodProfile(scenario),crowd=scenario.crowd==='normal'?1.6:scenario.crowd==='busy'?2.8:1,multiplier=crowd*profile.backgroundFactor*profile.hourlyDemandFactor,alightingMultiplier=crowd*profile.alightingFactor*profile.hourlyDemandFactor,births:Birth[]=[],slots=Math.round(1200*multiplier);
  for(let slot=0;slot<slots;slot++)if(draw(scenario.seed,slot,'background-inclusion')<.65)births.push({id:slot+1,time:(slot*3+draw(scenario.seed,slot,'background-time')*2.8)/multiplier});
- const trains:Train[]=buildTrainSchedule(scenario).map(train=>({...train,count:train.authored?Math.round((65+Math.floor(draw(scenario.seed,train.id,'alighting-count')*21))*multiplier):Math.round(bounded(scenario.events.find(e=>`event:${e.id}`===train.identity)!.magnitude,0,1500))}));
+ const trains:Train[]=buildTrainSchedule(scenario).map(train=>({...train,count:train.authored?Math.round((65+Math.floor(draw(scenario.seed,train.id,'alighting-count')*21))*alightingMultiplier):Math.round(bounded(scenario.events.find(e=>`event:${e.id}`===train.identity)!.magnitude,0,1500))}));
  for(const train of trains)for(let n=0;n<train.count;n++){const identity=train.identity,base=train.authored?10000+Number(train.id.slice(6))*2000:1000000000+Math.floor(draw(scenario.seed,identity,'event-identity')*4294967296)*2048;const time=train.start+(n+.15+draw(scenario.seed,`${identity}|${n}`,'wave-time')*.7)/Math.max(1,train.count)*train.spread;if(time<DURATION)births.push({id:base+n,time,platform:train.platform,door:n%TRAIN_DOOR_X.length});}
  births.sort((a,b)=>a.time-b.time||a.id-b.id);trains.sort((a,b)=>a.start-b.start);return {births,trains};
 }
@@ -63,7 +67,7 @@ function schedule(scenario:Scenario):{births:Birth[];trains:Train[]}{
 /** Event ledger and trajectories are independent of renderer and replay order. */
 export function simulate(input:Scenario):SimulationResult{
  validate(input);const key=JSON.stringify(input),cached=resultCache.get(key);if(cached)return cached;
- const scenario=immutable(structuredClone(input)),router=new Router(scenario),events=new EventHeap();
+ const scenario=immutable(structuredClone(input)),profile=periodProfile(scenario),router=new Router(scenario),events=new EventHeap();
  const {births,trains}=schedule(scenario),agents:Agent[]=[],visits:Visit[]=[],passes:Pass[]=[],exposures:Exposure[]=[];
  const shops=new Map<string,Shop>();
  for(const tenant of scenario.tenants){const pose=shopTransform(router.unit(tenant),tenant);shops.set(tenant.id,{tenant,pose,front:pose.front,entry:pose.entry,inside:pose.inside,queue:[],busy:0});}
@@ -102,19 +106,19 @@ export function simulate(input:Scenario):SimulationResult{
    const parameters=CATEGORIES[shop.tenant.category],tasks=bounded(parameters.taskMinutesPerHour/60*shop.tenant.preparation,0,.7),slot=queuePosition(shop,0),slotWalk=distance(shop.front,slot)/visit.agent.speed,progress=bounded((time-visit.join!)/Math.max(.001,slotWalk),0,1),servicePosition={x:shop.front.x+(slot.x-shop.front.x)*progress,y:1,z:shop.front.z+(slot.z-shop.front.z)*progress},approach=distance(servicePosition,shop.entry)/visit.agent.speed,walk=distance(shop.entry,shop.inside)/visit.agent.speed,seconds=Math.max(visit.rawService/(1-tasks),approach+walk+1);visit.serviceEnd=time+seconds;shop.busy++;
    move(visit.agent,time,time+approach,servicePosition,shop.entry,'walking',shop.tenant.id);move(visit.agent,time+approach,time+approach+walk,shop.entry,shop.inside,'service',shop.tenant.id);stationary(visit.agent,time+approach+walk,time+seconds,shop.inside,'service',shop.tenant.id);
    events.push(time+seconds,()=>{
-    shop.busy--;if(draw(scenario.seed,visit.agent.id,`purchase:${shop.tenant.category}`)<.90){visit.purchase=time+seconds;visit.sale=Math.round((shop.tenant.basket??parameters.basket)*(.8+.4*draw(scenario.seed,visit.agent.id,`basket:${shop.tenant.category}`))/100)*100;visit.margin=Math.round(visit.sale*(shop.tenant.margin??parameters.margin));}
+    shop.busy--;if(draw(scenario.seed,visit.agent.id,`purchase:${shop.tenant.category}`)<(shop.tenant.purchaseProbability??.90)){visit.purchase=time+seconds;visit.sale=Math.round((shop.tenant.basket??parameters.basket)*(.8+.4*draw(scenario.seed,visit.agent.id,`basket:${shop.tenant.category}`))/100)*100;visit.margin=Math.round(visit.sale*(shop.tenant.margin??parameters.margin));}
     const walkOut=distance(shop.inside,shop.entry)/visit.agent.speed,linger=Math.max(walkOut+1,(shop.tenant.category==='meals'?20:shop.tenant.category==='retail'?12:6)+draw(scenario.seed,visit.agent.id,'after-service')*8);stationary(visit.agent,time+seconds,time+seconds+linger-walkOut,shop.inside,'browsing',shop.tenant.id);move(visit.agent,time+seconds+linger-walkOut,time+seconds+linger,shop.inside,shop.entry,'browsing',shop.tenant.id);events.push(time+seconds+linger,()=>finishVisit(visit,time+seconds+linger));pump(shop,time+seconds);
    });
   }
  };
  const enter=(agent:Agent,shop:Shop,time:number)=>{
   if(!isOpen(shop.tenant,time)){leaveDoor(agent,shop,time);return;}
-  const parameters=CATEGORIES[shop.tenant.category],workers=staff(shop.tenant,time),expectedWait=shop.queue.length*(shop.tenant.serviceSeconds??parameters.service)/Math.max(1,workers),acceptance=.97-.35*bounded(expectedWait/parameters.patience,0,1);
+  const parameters=CATEGORIES[shop.tenant.category],workers=staff(shop.tenant,time),expectedWait=shop.queue.length*(shop.tenant.serviceSeconds??parameters.service)/Math.max(1,workers),acceptance=.97-.35*bounded(expectedWait/(parameters.patience*profile.patienceFactor),0,1);
   if(draw(scenario.seed,agent.id,`enter:${shop.tenant.category}`)>acceptance){leaveDoor(agent,shop,time);return;}
   pass(agent,shop.tenant,time);
   const visit:Visit={id:++visitId,agent,tenant:shop.tenant,entry:time,sale:0,margin:0,abandoned:false,state:'browse',rawService:(shop.tenant.serviceSeconds??parameters.service)*(.75+.5*draw(scenario.seed,agent.id,`service:${shop.tenant.category}`))};visits.push(visit);
   const walkIn=distance(shop.entry,shop.inside)/agent.speed,clearDoor=distance(shop.entry,shop.front)/agent.speed,browsing=Math.max(walkIn*2+clearDoor+1,(shop.tenant.category==='retail'?22:shop.tenant.category==='meals'?12:6)+draw(scenario.seed,agent.id,`browse:${shop.tenant.category}`)*14);move(agent,time,time+walkIn,shop.entry,shop.inside,'browsing',shop.tenant.id);stationary(agent,time+walkIn,time+browsing-walkIn-clearDoor,shop.inside,'browsing',shop.tenant.id);move(agent,time+browsing-walkIn-clearDoor,time+browsing-clearDoor,shop.inside,shop.entry,'browsing',shop.tenant.id);move(agent,time+browsing-clearDoor,time+browsing,shop.entry,shop.front,'walking',shop.tenant.id);
-  events.push(time+browsing,()=>{visit.join=time+browsing;visit.state='queue';shop.queue.push(visit);const maximum=shop.tenant.size==='small'?8:shop.tenant.size==='large'?18:12;if(shop.queue.length>maximum){abandon(visit,visit.join);return;}const patience=parameters.patience*(.7+.6*draw(scenario.seed,agent.id,`patience:${shop.tenant.category}`));events.push(visit.join+patience,()=>abandon(visit,visit.join!+patience));pump(shop,visit.join);});
+  events.push(time+browsing,()=>{visit.join=time+browsing;visit.state='queue';shop.queue.push(visit);const maximum=shop.tenant.size==='small'?8:shop.tenant.size==='large'?18:12;if(shop.queue.length>maximum){abandon(visit,visit.join);return;}const patience=parameters.patience*profile.patienceFactor*(.7+.6*draw(scenario.seed,agent.id,`patience:${shop.tenant.category}`));events.push(visit.join+patience,()=>abandon(visit,visit.join!+patience));pump(shop,visit.join);});
  };
  const campaignLift=(tenant:Tenant,agent:Agent,path:Route,time:number,entryTime:number)=>{
   let lift=0;
@@ -122,13 +126,13 @@ export function simulate(input:Scenario):SimulationResult{
   return Math.min(.75,lift);
  };
  const spawn=(birth:Birth)=>{
-  const fromTrain=birth.platform!==undefined,side=draw(scenario.seed,birth.id,'origin-side')<.57,lane=(Math.floor(draw(scenario.seed,birth.id,'corridor-lane')*7)-3)*.2,boarding=!fromTrain&&draw(scenario.seed,birth.id,'boarding-journey')<.32,platform=boarding?(draw(scenario.seed,birth.id,'boarding-platform')<.5?0:1):birth.platform??0,doorIndex=birth.door??Math.floor(draw(scenario.seed,birth.id,'boarding-door')*TRAIN_DOOR_X.length),door={x:TRAIN_DOOR_X[doorIndex]+(draw(scenario.seed,birth.id,'door-position')-.5)*.3,y:0,z:PLATFORM_FLOW[platform].doorZ},waiting={x:Math.min(19.45,TRAIN_DOOR_X[doorIndex])+(draw(scenario.seed,birth.id,'waiting-position')-.5)*2.8,y:0,z:PLATFORM_FLOW[platform].waitRows[Math.floor(draw(scenario.seed,birth.id,'waiting-row')*3)]},origin=fromTrain?door:router.point(side?'W':'E',lane),destination=boarding?waiting:router.point(fromTrain?(side?'W':'E'):(side?'E':'W'),lane);
+  const fromTrain=birth.platform!==undefined,side=draw(scenario.seed,birth.id,'origin-side')<.57,lane=(Math.floor(draw(scenario.seed,birth.id,'corridor-lane')*7)-3)*.2,boarding=!fromTrain&&draw(scenario.seed,birth.id,'boarding-journey')<profile.boardingProbability,platform=boarding?(draw(scenario.seed,birth.id,'boarding-platform')<.5?0:1):birth.platform??0,doorIndex=birth.door??Math.floor(draw(scenario.seed,birth.id,'boarding-door')*TRAIN_DOOR_X.length),door={x:TRAIN_DOOR_X[doorIndex]+(draw(scenario.seed,birth.id,'door-position')-.5)*.3,y:0,z:PLATFORM_FLOW[platform].doorZ},waiting={x:Math.min(19.45,TRAIN_DOOR_X[doorIndex])+(draw(scenario.seed,birth.id,'waiting-position')-.5)*2.8,y:0,z:PLATFORM_FLOW[platform].waitRows[Math.floor(draw(scenario.seed,birth.id,'waiting-row')*3)]},origin=fromTrain?door:router.point(side?'W':'E',lane),destination=boarding?waiting:router.point(fromTrain?(side?'W':'E'):(side?'E':'W'),lane);
   const agent:Agent={id:birth.id,born:birth.time,depart:Infinity,origin,destination,boarding,...(boarding?{boardingDoor:door}:{}),lane,speed:.85+draw(scenario.seed,birth.id,'walking-speed')*.5,color:Math.floor(draw(scenario.seed,birth.id,'visual-color')*6),segments:[],passing:new Set(),screens:new Map()};agents.push(agent);
   const normal=router.route(origin,destination,birth.time,agent.speed,agent.lane),options:{shop:Shop;weight:number;route:Route}[]=[];
   for(const shop of shops.values()){
    let nearest=Infinity;for(const leg of normal.legs)if(leg.from.y===1&&leg.to.y===1)nearest=Math.min(nearest,nearestOnLeg(shop.front,leg).distance);if(nearest>5.8)continue;
    const route=router.route(origin,shop.front,birth.time,agent.speed,agent.lane);if(!isOpen(shop.tenant,route.end))continue;
-   const parameter=CATEGORIES[shop.tenant.category],substitutes=[...shops.values()].filter(o=>o.tenant.category===shop.tenant.category&&distance(o.front,shop.front)<15).length,journey=boarding?.72:fromTrain?1.05:1,weight=parameter.attraction*router.unit(shop.tenant).fit*journey*(1-nearest/8)/Math.sqrt(substitutes)*(1+campaignLift(shop.tenant,agent,normal,birth.time,route.end+distance(shop.front,shop.entry)/agent.speed));if(weight>0)options.push({shop,weight,route});
+   const parameter=CATEGORIES[shop.tenant.category],substitutes=[...shops.values()].filter(o=>o.tenant.category===shop.tenant.category&&distance(o.front,shop.front)<15).length,journey=boarding?.72:fromTrain?1.05:1,weight=parameter.attraction*profile.attractionFactor[shop.tenant.category]*router.unit(shop.tenant).fit*journey*(1-nearest/8)/Math.sqrt(substitutes)*(1+campaignLift(shop.tenant,agent,normal,birth.time,route.end+distance(shop.front,shop.entry)/agent.speed));if(weight>0)options.push({shop,weight,route});
   }
   const sum=options.reduce((n,o)=>n+o.weight,0),probability=Math.min(.58,1-Math.exp(-sum*1.28));
   if(sum>0&&draw(scenario.seed,birth.id,'shopping-opportunity')<probability){let choice=draw(scenario.seed,birth.id,'shop-choice')*sum,selected=options[options.length-1];for(const option of options){choice-=option.weight;if(choice<=0){selected=option;break;}}addRoute(agent,selected.route);const entryTime=selected.route.end+distance(selected.shop.front,selected.shop.entry)/agent.speed;move(agent,selected.route.end,entryTime,selected.shop.front,selected.shop.entry,'walking',selected.shop.tenant.id);events.push(entryTime,()=>enter(agent,selected.shop,entryTime));}else depart(agent,origin,birth.time);
@@ -147,7 +151,7 @@ export function simulate(input:Scenario):SimulationResult{
   const selected=scenario.tenants.filter(t=>!tenantId||t.id===tenantId),waitTimes:number[]=[];
   const tenants:TenantMetrics[]=selected.map(tenant=>{
    const parameter=CATEGORIES[tenant.category],cohort=visits.filter(v=>v.tenant.id===tenant.id),entries=cohort.filter(v=>inWindow(v.entry,start,end)),completed=cohort.filter(v=>inWindow(v.exit,start,end)),transactions=cohort.filter(v=>inWindow(v.purchase,start,end)),waits=cohort.filter(v=>inWindow(v.serviceStart,start,end)).map(v=>(v.serviceStart!-v.join!)/60);waitTimes.push(...waits);
-   const sales=transactions.reduce((n,v)=>n+v.sale,0),grossMargin=transactions.reduce((n,v)=>n+v.margin,0),workerSeconds=cumulativeWorkerSeconds(tenant,end)-cumulativeWorkerSeconds(tenant,start),labor=Math.round(cumulativeWorkerSeconds(tenant,end)*parameter.wagePerHour/3600)-Math.round(cumulativeWorkerSeconds(tenant,start)*parameter.wagePerHour/3600),daily=tenant.occupancyPerDay??router.unit(tenant).rentPerDay,occupancyCost=Math.round(daily*end/86400)-Math.round(daily*start/86400),campaignCost=scenario.campaigns.filter(c=>!c.archived&&c.tenantId===tenant.id).reduce((n,c)=>n+campaignCumulative(c,end)-campaignCumulative(c,start),0),passing=new Set(passes.filter(p=>p.tenant===tenant.id&&inWindow(p.time,start,end)).map(p=>p.agent)).size,tasks=parameter.taskMinutesPerHour*tenant.preparation*overlap(start,end,tenant.open,tenant.close)/3600,workload=cohort.reduce((n,v)=>n+serviceOverlap(v,start,end),0)+tasks;
+   const sales=transactions.reduce((n,v)=>n+v.sale,0),grossMargin=transactions.reduce((n,v)=>n+v.margin,0),workerSeconds=cumulativeWorkerSeconds(tenant,end)-cumulativeWorkerSeconds(tenant,start),labor=Math.round(cumulativeWorkerSeconds(tenant,end)*(tenant.wagePerHour??parameter.wagePerHour)/3600)-Math.round(cumulativeWorkerSeconds(tenant,start)*(tenant.wagePerHour??parameter.wagePerHour)/3600),daily=tenant.occupancyPerDay??router.unit(tenant).rentPerDay,occupancyCost=Math.round(daily*end/86400)-Math.round(daily*start/86400),campaignCost=scenario.campaigns.filter(c=>!c.archived&&c.tenantId===tenant.id).reduce((n,c)=>n+campaignCumulative(c,end)-campaignCumulative(c,start),0),passing=new Set(passes.filter(p=>p.tenant===tenant.id&&inWindow(p.time,start,end)).map(p=>p.agent)).size,tasks=parameter.taskMinutesPerHour*tenant.preparation*overlap(start,end,tenant.open,tenant.close)/3600,workload=cohort.reduce((n,v)=>n+serviceOverlap(v,start,end),0)+tasks;
    const passingIds=new Set(passes.filter(p=>p.tenant===tenant.id&&inWindow(p.time,start,end)).map(p=>p.agent)),attributableEntries=entries.filter(v=>passingIds.has(v.agent.id)).length;
    return {tenantId:tenant.id,passing,visits:entries.length,completed:completed.length,transactions:transactions.length,abandoned:cohort.filter(v=>v.abandoned&&inWindow(v.exit,start,end)).length,sales,grossMargin,labor,occupancyCost,campaignCost,contribution:grossMargin-labor-occupancyCost-campaignCost,entryRate:passing?attributableEntries/passing:null,conversion:completed.length?completed.filter(v=>v.purchase!==undefined).length/completed.length:null,waitMean:mean(waits),waitP90:p90(waits),dwellMean:mean(completed.map(v=>(v.exit!-v.entry)/60)),queueLength:queueAt(tenant.id,end).length,workload,coverage:workload>0?workerSeconds/60/workload:0};
   });
@@ -186,5 +190,7 @@ export function createStressScenario(scenario:Scenario):Scenario{
 export function compareScenarios(scenario:Scenario,start=0,end=DURATION):Comparison{
  const baseline=structuredClone(BASELINE);baseline.seed=scenario.seed;
  if(scenario.crowd===undefined)delete baseline.crowd;else baseline.crowd=scenario.crowd;
+ if(scenario.period===undefined)delete baseline.period;else baseline.period=scenario.period;
+ if(scenario.startHour===undefined)delete baseline.startHour;else baseline.startHour=scenario.startHour;
  return {baseline:simulate(baseline).metrics(start,end),proposed:simulate(structuredClone(scenario)).metrics(start,end),stress:simulate(createStressScenario(scenario)).metrics(start,end)};
 }

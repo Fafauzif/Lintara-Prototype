@@ -7,6 +7,6 @@ export const ID={...BASE_ID,...EXTRA_ID};
 export function translate(lang:Language,key:string){return lang==='id'?(ID[key]??key):key;}
 export function number(lang:Language,value:number,digits=0){return new Intl.NumberFormat(lang==='id'?'id-ID':'en-GB',{maximumFractionDigits:digits}).format(value);}
 export function money(lang:Language,value:number,compact=false){return new Intl.NumberFormat(lang==='id'?'id-ID':'en-GB',{style:'currency',currency:'IDR',maximumFractionDigits:0,notation:compact?'compact':'standard'}).format(value);}
-export function time(seconds:number){const total=7*60+Math.floor(seconds/60);return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
+export {time} from '../domain/period';
 export function percentage(lang:Language,value:number|null){return value===null?'—':`${number(lang,value*100,1)}%`;}
 export function categoryLabel(category:string){return ({bakery:'Bakery',coffee:'Coffee',meals:'Quick meals',retail:'Convenience'} as Record<string,string>)[category]??category;}

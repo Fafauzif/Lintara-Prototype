@@ -1,3 +1,15 @@
+# Revision 1.2 browser rehearsal
+
+Before using this source in a live demonstration:
+
+- At320/375/400/768/1280/1920px, find Quality beside roles and the header Next train without opening Layers. Verify visible labels, focus, 44px targets and no horizontal overflow; test tenant shop selection.
+- Use both header and command-bar Next train. Verify approach/play, replay, no plan mutation and sensible end-of-hour disabled state.
+- Select morning/lunch/evening and start hours05/08/18/22; edit exact clock time and scrubber. Confirm scenario demand changes, layouts stay usable, and all inputs/timetables/reports follow the selected hour.
+- Opportunity: edit/apply assumptions; find/apply a legal option and Undo; change hour/tenant or leave while searching to verify stale results never apply. Try zero basket/margin/wage/probability and high costs.
+- Impacts: inspect negative sales, favorable cost/wait reductions and neutralzero in EN/ID; ensure no double minus or misleading unconditional stress claim.
+- Tenant privacy: selected business only in page, sensitivity and downloaded/printed brief. Check all report downloads/pop-up behavior in the browser.
+- Run the original interaction/device checks below. Source callback and server-render checks do not replace them.
+
 # Browser acceptance plan
 
 This plan is supplied for a permitted local browser; it is not a completed browser-test record. The execution browser blocked the local preview and file URLs. Do not interpret TypeScript/Vitest success as evidence for the tests below.

@@ -1,6 +1,7 @@
 import type { Campaign, Category, Scenario, ScenarioEvent, Tenant } from './types';
 import { CATEGORIES, DURATION, SCREENS, UNITS } from '../data/station';
 import { validateTrainSchedule } from './trainSchedule';
+import {validatePeriodContext} from './period';
 
 /** Authored planning footprints (metres), deliberately limited to commercial slots. */
 export const FOOTPRINTS: Record<Tenant['size'], {width:number;depth:number}> = {
@@ -72,6 +73,9 @@ export function validateScenario(input:unknown):Scenario {
   const source=object(input,'Scenario');
   if(source.version!==1)throw new Error('Unsupported scenario version. Import a version 1 Lintara plan.');
   const scenario:Scenario={version:1,id:id(source.id,'Scenario ID'),name:string(source.name,'Scenario name'),seed:finite(source.seed,'Seed',0,4294967295,true),tenants:[],events:[],campaigns:[]};
+  validatePeriodContext({period:source.period,startHour:source.startHour});
+  if(source.period!==undefined)scenario.period=source.period as Scenario['period'];
+  if(source.startHour!==undefined)scenario.startHour=source.startHour as number;
   if(source.crowd!==undefined){
     if(source.crowd!=='normal'&&source.crowd!=='busy')throw new Error('Crowd demand must be normal or busy.');
     scenario.crowd=source.crowd;
@@ -88,6 +92,8 @@ export function validateScenario(input:unknown):Scenario {
     if(data.serviceSeconds!==undefined)tenant.serviceSeconds=finite(data.serviceSeconds,'Tenant service time',5,600);
     if(data.margin!==undefined)tenant.margin=finite(data.margin,'Tenant margin',0,1);
     if(data.occupancyPerDay!==undefined)tenant.occupancyPerDay=finite(data.occupancyPerDay,'Tenant occupancy cost per day',0,100000000,true);
+    if(data.wagePerHour!==undefined)tenant.wagePerHour=finite(data.wagePerHour,'Tenant wage per hour',0,1000000);
+    if(data.purchaseProbability!==undefined)tenant.purchaseProbability=finite(data.purchaseProbability,'Tenant purchase probability',0,1);
     if(tenant.close<=tenant.open)throw new Error('Tenant opening hours must end after they start.');
     if(!rotations.includes(tenant.rotation))throw new Error('Tenant rotation must be 0, 90, 180, or 270 degrees.');
     if(scenario.tenants.some(t=>t.id===tenant.id))throw new Error('Tenant IDs must be unique.');

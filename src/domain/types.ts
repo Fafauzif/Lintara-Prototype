@@ -1,11 +1,12 @@
 export type Category='bakery'|'coffee'|'meals'|'retail';
 export type Language='en'|'id';
+export type TimePeriod='morning'|'midday'|'evening';
 export interface Unit {id:string;label:string;x:number;z:number;width:number;depth:number;rentPerDay:number;zone:string;allowed:Category[];fit:number;frontage:number;}
-export interface Tenant {id:string;name:string;category:Category;unitId:string;staff:number;size:'small'|'medium'|'large';rotation:number;open:number;close:number;preparation:number;basket?:number;serviceSeconds?:number;margin?:number;occupancyPerDay?:number;}
+export interface Tenant {id:string;name:string;category:Category;unitId:string;staff:number;size:'small'|'medium'|'large';rotation:number;open:number;close:number;preparation:number;basket?:number;serviceSeconds?:number;margin?:number;occupancyPerDay?:number;wagePerHour?:number;purchaseProbability?:number;}
 export type EventType='arrival'|'delay'|'rain'|'closure'|'staff';
 export interface ScenarioEvent {id:string;type:EventType;start:number;duration:number;magnitude:number;target?:string;}
 export interface Campaign {id:string;name:string;screenId:string;tenantId:string;start:number;end:number;budget:number;objective:'awareness'|'visits'|'purchases';creative?:'journey'|'fresh';archived?:boolean;}
-export interface Scenario {version:1;id:string;name:string;seed:number;crowd?:'normal'|'busy';tenants:Tenant[];events:ScenarioEvent[];campaigns:Campaign[];}
+export interface Scenario {version:1;id:string;name:string;seed:number;crowd?:'normal'|'busy';period?:TimePeriod;startHour?:number;tenants:Tenant[];events:ScenarioEvent[];campaigns:Campaign[];}
 export interface CategoryParameters {name:string;color:string;basket:number;margin:number;service:number;attraction:number;patience:number;wagePerHour:number;taskMinutesPerHour:number;icon:string;}
 export interface AgentSample {id:number;x:number;y:number;z:number;angle:number;color:number;state:'walking'|'queue'|'service'|'browsing';tenantId?:string;}
 export interface TenantMetrics {tenantId:string;passing:number;visits:number;completed:number;transactions:number;abandoned:number;sales:number;grossMargin:number;labor:number;occupancyCost:number;campaignCost:number;contribution:number;entryRate:number|null;conversion:number|null;waitMean:number;waitP90:number;dwellMean:number;queueLength:number;workload:number;coverage:number;}

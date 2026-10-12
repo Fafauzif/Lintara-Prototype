@@ -1,6 +1,12 @@
 import type {Language} from '../domain/types';
 import {translate} from './index';
 const id:Record<string,string>={
+ 'Plan actions':'Tindakan rencana',
+ 'Business opportunity':'Peluang usaha','Demo route':'Alur demo','Turn station movement into a business case.':'Ubah arus stasiun menjadi peluang usaha.',
+ 'Simulated outlook':'Proyeksi simulasi','Watch a train':'Lihat kereta','Find an opportunity':'Cari peluang','Read the impact':'Baca dampak',
+ 'Hour updated. Shop and event offsets are retained.':'Jam diubah. Jarak waktu toko dan peristiwa tetap sama.',
+ 'The event must fit inside the selected hour.':'Peristiwa harus masuk dalam jam yang dipilih.',
+
  'Lite':'Lite','Standard':'Standard','High':'High','Graphics':'Grafis','Whole station':'Seluruh stasiun','Platforms':'Peron',
  'Lite: simpler people, lower resolution, no shadows.':'Lite: bentuk orang lebih sederhana, resolusi rendah, tanpa bayangan.',
  'Standard: the original rendering baseline.':'Standard: dasar render seperti versi awal.',

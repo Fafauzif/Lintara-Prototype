@@ -7,6 +7,7 @@ import { buildTrainSchedule, TRAIN_APPROACH_SECONDS, TRAIN_DEPARTURE_SECONDS } f
 import { arrivalPreview } from '../domain/playback';
 import { DURATION } from '../data/station';
 import { time } from '../i18n';
+import { parseClock, startHourOf, windowLabel } from '../domain/period';
 import './simulation-controls.css';
 
 export interface SimulationControlsProps {
@@ -20,6 +21,7 @@ export interface SimulationControlsProps {
   onSeek: (time: number) => void;
   onPreview: (mode: 'next' | 'replay') => void;
   onAddArrival?: () => void;
+  onHourChange?: (hour: number) => void;
   children?: ReactNode;
   compact?: boolean;
 }
@@ -53,7 +55,7 @@ function markerRows<T extends { start: number }>(items: T[]): { item: T; row: nu
 
 const markerLeft = (position: number): string => `clamp(0px, calc(${position / DURATION * 100}% - 34px), calc(100% - 68px))`;
 
-export function SimulationControls({ lang, scenario, currentTime, playing, speed, onTogglePlay, onSpeedChange, onSeek, onPreview, onAddArrival, children, compact = false }: SimulationControlsProps) {
+export function SimulationControls({ lang, scenario, currentTime, playing, speed, onTogglePlay, onSpeedChange, onSeek, onPreview, onAddArrival, onHourChange, children, compact = false }: SimulationControlsProps) {
   const text = copy[lang];
   const timelineId = useId();
   const now = Number.isFinite(currentTime) ? Math.max(0, Math.min(DURATION, currentTime)) : 0;
@@ -67,25 +69,32 @@ export function SimulationControls({ lang, scenario, currentTime, playing, speed
     const phase = phaseAt(train, now);
     return phase ? [`${text.platform} ${train.platform + 1}: ${trainName(train)} · ${text[phase]}`] : [];
   });
-  const clock = `${time(now)}:${String(Math.floor(now) % 60).padStart(2, '0')}`;
+  const clock = `${time(now, scenario)}:${String(Math.floor(now) % 60).padStart(2, '0')}`;
 
   return <section className={`simulation-controls${compact ? ' simulation-controls--compact' : ''}`} aria-label={text.timeline}>
+    <div className="simulation-periods">
+      <div className="period-presets" role="group" aria-label={lang==='id'?'Pilihan jam simulasi':'Simulation hour presets'}>
+        {([[7,'Morning rush','Sibuk pagi'],[12,'Lunch hour','Jam makan siang'],[17,'Evening rush','Sibuk sore']] as const).map(([hour,en,id])=><button type="button" key={hour} aria-pressed={startHourOf(scenario)===hour} onClick={()=>onHourChange?.(hour)} disabled={!onHourChange}>{lang==='id'?id:en}<small>{String(hour).padStart(2,'0')}:00</small></button>)}
+      </div>
+      <label className="simulation-hour-label">{lang==='id'?'Mulai jam':'Start hour'}<select aria-label={lang==='id'?'Mulai jam':'Start hour'} value={startHourOf(scenario)} disabled={!onHourChange} onChange={event=>onHourChange?.(Number(event.target.value))}>{Array.from({length:18},(_,i)=>i+5).map(hour=><option key={hour} value={hour}>{String(hour).padStart(2,'0')}:00–{String(hour+1).padStart(2,'0')}:00</option>)}</select></label>
+      <span className="simulation-assumption">{lang==='id'?'Pola arus & pilihan belanja ikut jam. Asumsi simulasi.':'Movement & shopping patterns follow the hour. Model assumptions.'}</span>
+    </div>
     <div className="simulation-controls-top">
       <div className="simulation-actions">
         <button type="button" className="simulation-action simulation-action--play" aria-label={playing ? text.pause : text.play} onClick={onTogglePlay} data-testid="play-pause">
           {playing ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}<span>{playing ? text.pause : text.play}</span>
         </button>
-        <button type="button" className="simulation-action" aria-label={text.next} disabled={!next} onClick={() => onPreview('next')} data-testid="next-train"><SkipForward size={16} aria-hidden="true" /><span>{text.next}</span></button>
+        <button type="button" className="simulation-action simulation-action--next" aria-label={text.next} disabled={!next} onClick={() => onPreview('next')} data-testid="next-train"><SkipForward size={16} aria-hidden="true" /><span>{text.next}</span></button>
         <button type="button" className="simulation-action" aria-label={text.replay} disabled={!replay} onClick={() => onPreview('replay')} data-testid="replay-arrival"><RotateCcw size={16} aria-hidden="true" /><span>{text.replay}</span></button>
         {onAddArrival && <button type="button" className="simulation-action simulation-action--add" aria-label={text.add} onClick={onAddArrival} data-testid="add-arrival"><Plus size={16} aria-hidden="true" /><span>{text.add}</span></button>}
       </div>
-      <div className="simulation-clock-speed"><strong>{clock}<small> WIB</small></strong><label>{text.speed}<select value={speed} onChange={event => onSpeedChange(Number(event.target.value))} aria-label={text.speed}>
+      <div className="simulation-clock-speed"><label className="simulation-clock-input">{lang==='id'?'Ke waktu':'Jump to time'}<input type="time" step={1} min={time(0,scenario)} max={time(DURATION,scenario)} value={clock} aria-label={lang==='id'?'Ke waktu simulasi':'Jump to simulation time'} onChange={event=>{const value=parseClock(event.target.value,scenario);if(value!==null)onSeek(value);}}/><small> WIB</small></label><label>{text.speed}<select value={speed} onChange={event => onSpeedChange(Number(event.target.value))} aria-label={text.speed}>
         {![1, 10, 60].includes(speed) && <option value={speed}>{speed}×</option>}{[1, 10, 60].map(value => <option value={value} key={value}>{value}×</option>)}
       </select></label></div>
       {children && <div className="simulation-plan-actions">{children}</div>}
     </div>
     <div className="simulation-timetable-heading"><span className="simulation-current-phase" role="status" aria-live="polite">{activePhases.length ? activePhases.join(' · ') : text.waiting}</span><span className="simulation-next-countdown">{next ? <>{text.nextIn} <b>{countdown(next.train.start - now)}</b> · {text.platform} {next.train.platform + 1}</> : text.finished}</span></div>
-    <div className="simulation-scrubber"><label className="simulation-range-label" htmlFor={timelineId}>{text.timeline}<span>07:00–08:00 WIB</span></label><input id={timelineId} type="range" min={0} max={DURATION} step={1} value={now} onChange={event => onSeek(Number(event.target.value))} aria-label={text.timeline} aria-valuetext={`${clock} WIB`} data-testid="timeline" /></div>
+    <div className="simulation-scrubber"><label className="simulation-range-label" htmlFor={timelineId}>{text.timeline}<span>{windowLabel(scenario)}</span></label><input id={timelineId} type="range" min={0} max={DURATION} step={1} value={now} onChange={event => onSeek(Number(event.target.value))} aria-label={text.timeline} aria-valuetext={`${clock} WIB`} data-testid="timeline" /></div>
     <details className="simulation-timetable-details">
       <summary><span><TrainFront size={16} aria-hidden="true" />{text.timetable}</span><small>{schedule.filter(train => train.authored).length} {text.scheduled} · {schedule.filter(train => !train.authored).length} {text.added}</small></summary>
       <div className="simulation-timetable-scroll" tabIndex={0} role="region" aria-label={text.timetable}>
@@ -102,21 +111,21 @@ export function SimulationControls({ lang, scenario, currentTime, playing, speed
               {trains.map(({ item: train, row, position }) => {
                 const phase = phaseAt(train, now);
                 const outside = train.start - TRAIN_APPROACH_SECONDS >= DURATION || train.start + train.dwell + TRAIN_DEPARTURE_SECONDS <= 0;
-                const label = `${trainName(train)} · ${text.platform} ${platform + 1} · ${time(train.start)} WIB · ${train.authored ? text.scheduled : text.added} · ${outside ? text.outside : text.preview}`;
+                const label = `${trainName(train)} · ${text.platform} ${platform + 1} · ${time(train.start, scenario)} WIB · ${train.authored ? text.scheduled : text.added} · ${outside ? text.outside : text.preview}`;
                 const approach = Math.max(0, train.start - TRAIN_APPROACH_SECONDS);
                 const departure = Math.min(DURATION, train.start + train.dwell + TRAIN_DEPARTURE_SECONDS);
                 return <div key={train.identity}>
                   {!outside && <span className={`simulation-train-window${train.authored ? '' : ' simulation-train-window--added'}`} style={{ left: `${approach / DURATION * 100}%`, width: `${(departure - approach) / DURATION * 100}%`, top: row * 48 + 25 }} aria-hidden="true" />}
-                  <button type="button" className={`simulation-train-marker${train.authored ? '' : ' simulation-train-marker--added'}${phase ? ' simulation-train-marker--active' : ''}`} style={{ left: markerLeft(position), top: row * 48 + 4 }} title={label} aria-label={label} aria-current={phase ? 'true' : undefined} disabled={outside} onClick={() => onSeek(Math.max(0, train.start - TRAIN_APPROACH_SECONDS - 5))} data-testid={`train-marker-${train.id}`}><strong>{trainName(train)}</strong><span>{time(train.start)}</span></button>
+                  <button type="button" className={`simulation-train-marker${train.authored ? '' : ' simulation-train-marker--added'}${phase ? ' simulation-train-marker--active' : ''}`} style={{ left: markerLeft(position), top: row * 48 + 4 }} title={label} aria-label={label} aria-current={phase ? 'true' : undefined} disabled={outside} onClick={() => onSeek(Math.max(0, train.start - TRAIN_APPROACH_SECONDS - 5))} data-testid={`train-marker-${train.id}`}><strong>{trainName(train)}</strong><span>{time(train.start, scenario)}</span></button>
                 </div>;
               })}
             </div>
           </div>;
         })}
         {interventions.length > 0 && <div className="simulation-interventions"><strong>{text.interventions}</strong><div className="simulation-platform-track" style={{ height: Math.max(...interventions.map(marker => marker.row + 1)) * 48 + 4 }}>
-          {interventions.map(({ item: event, row, position }) => <button type="button" className="simulation-intervention-marker" key={event.id} style={{ left: markerLeft(position), top: row * 48 + 4 }} title={`${text.events[event.type]} · ${time(event.start)} WIB`} aria-label={`${text.events[event.type]} · ${time(event.start)} WIB`} onClick={() => onSeek(event.start)}><strong>{text.events[event.type]}</strong><span>{time(event.start)}</span></button>)}
+          {interventions.map(({ item: event, row, position }) => <button type="button" className="simulation-intervention-marker" key={event.id} style={{ left: markerLeft(position), top: row * 48 + 4 }} title={`${text.events[event.type]} · ${time(event.start, scenario)} WIB`} aria-label={`${text.events[event.type]} · ${time(event.start, scenario)} WIB`} onClick={() => onSeek(event.start)}><strong>{text.events[event.type]}</strong><span>{time(event.start, scenario)}</span></button>)}
         </div></div>}
-        <div className="simulation-time-labels">{[0, 900, 1800, 2700, DURATION].map(seconds => <span key={seconds}>{time(seconds)}</span>)}</div>
+        <div className="simulation-time-labels">{[0, 900, 1800, 2700, DURATION].map(seconds => <span key={seconds}>{time(seconds, scenario)}</span>)}</div>
       </div>
     </div>
     <div className="simulation-timetable-footer"><span className="simulation-timetable-legend"><i aria-hidden="true" />{text.scheduled}<i className="simulation-added-key" aria-hidden="true" />{text.added}</span><small>{text.help}</small></div>

@@ -46,6 +46,7 @@ assert(controlsAfter.props.currentTime===upcoming.start-45&&controlsAfter.props.
 assert(JSON.stringify(workspaceStore.getState().scenario)===plan,'previewing a train preserves the plan');
 find(n=>n.type==='button'&&n.props?.children==='Tenant').props.onClick();render();
 find(n=>n.props?.['data-testid']==='nav-station').props.onClick();render();
+find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onSelect('T2');render();
 find(n=>n.props?.tenant?.id==='T2'&&typeof n.props?.onMove==='function').props.onMove();render();
 find(n=>n.props?.result&&typeof n.props?.onPlace==='function').props.onPlace('U3','coffee');render();
 assert(workspaceStore.getState().scenario.tenants.find(t=>t.id==='T2').unitId==='U3','tenant can directly move their own shop');

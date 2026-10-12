@@ -82,3 +82,15 @@
   .simulation-controls *, .simulation-controls *::before, .simulation-controls *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media print { .simulation-controls { display: none !important; } }
+.simulation-periods{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.period-presets{display:flex;gap:4px;flex-wrap:wrap}
+.period-presets button{min-height:44px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d8e0eb;border-radius:6px;color:#243b75;padding:7px 11px;font-weight:600;cursor:pointer}
+.period-presets button[aria-pressed=true]{background:#edf2fc;border-color:#243b75;box-shadow:inset 0 0 0 1px #243b75}
+.period-presets button small{font-size:10px;font-weight:400;font-variant-numeric:tabular-nums}
+.simulation-hour-label{display:flex;gap:6px;align-items:center;color:#475569;font-size:11px}
+.simulation-hour-label select{min-height:44px;padding:7px;border:1px solid #d8e0eb;border-radius:6px;background:#fff;color:#172b54}
+.simulation-assumption{color:#475569;font-size:11px;max-width:250px;line-height:1.4}
+.simulation-clock-input{font-size:10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.simulation-clock-input input{min-height:44px;font-size:14px;font-variant-numeric:tabular-nums;max-width:145px;padding:7px;border:1px solid #d8e0eb;border-radius:6px;color:#172b54;background:#fff}
+.simulation-action--next{border-color:#243b75;background:#edf2fc;color:#172b54}
+@media(max-width:700px){.simulation-assumption{max-width:none}.simulation-periods{gap:8px}.period-presets{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.period-presets button{font-size:10px;gap:3px;padding:5px;flex-direction:column}.simulation-hour-label{flex:1}.simulation-controls--compact .simulation-actions{display:flex;flex-wrap:wrap}.simulation-clock-input{gap:3px}}
