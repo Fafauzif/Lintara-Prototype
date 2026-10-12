@@ -1,0 +1,3 @@
+import type {Scenario,SimulationResult,Language} from '../domain/types';
+export type ViewName='station'|'overview'|'tenants'|'staffing'|'campaigns'|'scenarios'|'locations'|'business'|'opportunity';
+export interface ViewProps {lang:Language;scenario:Scenario;result:SimulationResult;currentTime:number;onSeek:(t:number)=>void;onChange:(s:Scenario)=>void;onSelect:(id:string)=>void;onNavigate:(view:ViewName)=>void;onToast:(message:string)=>void;ownTenantId:string;selectedId?:string|null;role:'operator'|'tenant';savedPlans:Scenario[];onSave:()=>void;onDuplicate?:(s:Scenario)=>void;onOpen:(s:Scenario)=>void;onDelete:(id:string)=>void;onImport:()=>void;}

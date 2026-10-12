@@ -1,0 +1,814 @@
+{
+  "brand": "Lintara",
+  "version": "1.0",
+  "svgMasterCount": 12,
+  "pngExportCount": 60,
+  "faviconOutputs": 9,
+  "identityFiles": [
+    {
+      "path": "GUIDE_FONT_LICENSE.txt",
+      "bytes": 52517,
+      "sha256": "1315a62758a603a3e6e87a79b8389563789c59c1740b9db8bc2b20e2e2145458"
+    },
+    {
+      "path": "LUCIDE_ICON_LICENSE.txt",
+      "bytes": 880,
+      "sha256": "1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1299,
+      "sha256": "981ab3f9e66afa4b7092ef5e62f29f1cea10af3c9baa5e732b2a05fb150a89d4"
+    },
+    {
+      "path": "WORDMARK_FONT_LICENSE.txt",
+      "bytes": 3859,
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9"
+    },
+    {
+      "path": "brand-tokens.json",
+      "bytes": 657,
+      "sha256": "4b8b1caee011926a26c2126853ea8090e612b8e7b00ad3eb7016bb9eb4904db4"
+    },
+    {
+      "path": "favicon/favicon-16.png",
+      "bytes": 251,
+      "sha256": "3cb7753a68a51b4b4189f06a14a8f4460e3b75ea75714fa8ac068dc8810c441b",
+      "dimensions": [
+        16,
+        16
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-180.png",
+      "bytes": 1615,
+      "sha256": "017a9177070d0684acb8249ce8b9c2361da674f6ecb9cd809724f451ba54368e",
+      "dimensions": [
+        180,
+        180
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-192.png",
+      "bytes": 1741,
+      "sha256": "057f3387b19a78042e580886abcca84fa422362798567c1e77e39fd3bc27c2e4",
+      "dimensions": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-32.png",
+      "bytes": 288,
+      "sha256": "2b80f7ba7913d6fb37c2b058d84a814038711155238b3421e11658549831af21",
+      "dimensions": [
+        32,
+        32
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-48.png",
+      "bytes": 411,
+      "sha256": "d01467672a025ffc8f56573c1988e034f260ba2fe292ed0ac21101522662f334",
+      "dimensions": [
+        48,
+        48
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-512.png",
+      "bytes": 8133,
+      "sha256": "ec4f756694ec0b274a9c53b7dd9c2a836f73df2e64bfc8a32800fbdc24f9d611",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon-64.png",
+      "bytes": 444,
+      "sha256": "7bfd95ae9601b3705bbfc99fb14c5d73971f9d3e6e2d432acb10205680a89dcd",
+      "dimensions": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon/favicon.ico",
+      "bytes": 3547,
+      "sha256": "b39331a0581fba61f598c8f5277fd9dd9f4fe842b2178328e7f5615d1526bf3a"
+    },
+    {
+      "path": "favicon/favicon.svg",
+      "bytes": 339,
+      "sha256": "9c6f4b493c8606d3e576bcacdbe87655dfa7d6d1747788abe7cf43b068d814c4",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    },
+    {
+      "path": "favicon.svg",
+      "bytes": 339,
+      "sha256": "9c6f4b493c8606d3e576bcacdbe87655dfa7d6d1747788abe7cf43b068d814c4",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    },
+    {
+      "path": "png/lintara-horizontal-mono-black-1024.png",
+      "bytes": 10640,
+      "sha256": "9fda508a99f60b144a9b3fadb5d9291fbb2190a8498382ef11ceddc5adf4d8a4",
+      "dimensions": [
+        1024,
+        270
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-black-128.png",
+      "bytes": 1018,
+      "sha256": "578a9aaf11175c8838b6ce1ed0e8a80d603a35058e662bdcdda96d0df95e7e80",
+      "dimensions": [
+        128,
+        34
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-black-2048.png",
+      "bytes": 28621,
+      "sha256": "54ade352ebbc7c268ed1a74c5db67a7fa448ec2c1f3b493b09553502f0cb1ae5",
+      "dimensions": [
+        2048,
+        541
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-black-256.png",
+      "bytes": 1926,
+      "sha256": "0643c6770a55c856e9e6bb90a89899b3e596a0f3698c606a6f13fc8e1ae58f2f",
+      "dimensions": [
+        256,
+        68
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-black-512.png",
+      "bytes": 4226,
+      "sha256": "35c9220744a801040d6ca851c72f2608b944b12311bff38a3c061361ac15cea8",
+      "dimensions": [
+        512,
+        135
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-navy-1024.png",
+      "bytes": 12900,
+      "sha256": "7dedcd0dbb562d48232c51d9c50ddec15fc3ba93ad7eeddb697c1f6663b55942",
+      "dimensions": [
+        1024,
+        270
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-navy-128.png",
+      "bytes": 1330,
+      "sha256": "0ffcbb256e5ca62303d6af7ac2c83da01ab6c3cbb1009871b1de916b0eb70db3",
+      "dimensions": [
+        128,
+        34
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-navy-2048.png",
+      "bytes": 33701,
+      "sha256": "265e46085f883378c6b6f5bda57e5e6020ffc77c334440fa8e8192f73be58293",
+      "dimensions": [
+        2048,
+        541
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-navy-256.png",
+      "bytes": 2488,
+      "sha256": "e55cc5c759dd58864e5bc9ad5c0db72d9c3b595cb796b66f02824b34cb4e9341",
+      "dimensions": [
+        256,
+        68
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-mono-navy-512.png",
+      "bytes": 5236,
+      "sha256": "e13cd4d54670c9589dbe80604efe9ac2ee81e209aa718a48c041427b6e56ff28",
+      "dimensions": [
+        512,
+        135
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-primary-1024.png",
+      "bytes": 12910,
+      "sha256": "2a41256d234b868b7ac215fbc9b934893ca2ce0cd6541431d09332ae46cde42e",
+      "dimensions": [
+        1024,
+        270
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-primary-128.png",
+      "bytes": 1361,
+      "sha256": "58140c014da211a7e3f40ccc88203c760ae4b40ed8d8f8d0fd4336d4d3d76e0f",
+      "dimensions": [
+        128,
+        34
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-primary-2048.png",
+      "bytes": 33464,
+      "sha256": "1d9f800b4a787a7b6d3050f88824f61d0bee8d1b1684cc043c3874f445b2cc99",
+      "dimensions": [
+        2048,
+        541
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-primary-256.png",
+      "bytes": 2529,
+      "sha256": "c336c37947374260ea7ae4a478708846461088db1ac2f80d5623b0e04758435c",
+      "dimensions": [
+        256,
+        68
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-primary-512.png",
+      "bytes": 5288,
+      "sha256": "90efd31a94699bf0afd8e12bae1051c85261650b3272f3bff47842ce0c1757cd",
+      "dimensions": [
+        512,
+        135
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-reverse-white-1024.png",
+      "bytes": 9799,
+      "sha256": "f265bd7f676b7da53c9842e68fd81d43393d23956d304888f5a81d37410d0c26",
+      "dimensions": [
+        1024,
+        270
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-reverse-white-128.png",
+      "bytes": 1032,
+      "sha256": "d792f716e5ca68c693a038589fddb9cf4758f134f3392cac12df898ff2f24a6b",
+      "dimensions": [
+        128,
+        34
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-reverse-white-2048.png",
+      "bytes": 25161,
+      "sha256": "447841e54f8806804dd96f23a58f597a1c2d95d43cd5e3cc0fdb6ad7dafef1d5",
+      "dimensions": [
+        2048,
+        541
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-reverse-white-256.png",
+      "bytes": 1963,
+      "sha256": "7ee31fefea2f52e9c3df86173860eec0f4ff024897344b71d6bcf90192c1a48a",
+      "dimensions": [
+        256,
+        68
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-horizontal-reverse-white-512.png",
+      "bytes": 4203,
+      "sha256": "b3d85d138f2a2207c89603afe649b3f83faf527d5d06cb66517bbc92b5dc5024",
+      "dimensions": [
+        512,
+        135
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-black-1024.png",
+      "bytes": 16748,
+      "sha256": "5da6757ae308180d5a9d20449cb4c41b0a875d5a8d9d83b2f9bc092b54911096",
+      "dimensions": [
+        1024,
+        731
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-black-128.png",
+      "bytes": 1394,
+      "sha256": "6615e5f48644da7f2836a0aca3bc93d71158bc521b4628238ecd4df00130ee0e",
+      "dimensions": [
+        128,
+        91
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-black-2048.png",
+      "bytes": 48849,
+      "sha256": "af94cb8fb6ad0f78e13b89421d0756fee00fb693ccfe12cfee786905b62a2a38",
+      "dimensions": [
+        2048,
+        1463
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-black-256.png",
+      "bytes": 2769,
+      "sha256": "43df118631f6ef4758a221a3349dd4f83b94f561598b0f2bdd0c52d4661ee90c",
+      "dimensions": [
+        256,
+        183
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-black-512.png",
+      "bytes": 6347,
+      "sha256": "f40efbea722ce58a9bb48b1ab885cf5a124ef2cfb10042bb5514017cb01dde51",
+      "dimensions": [
+        512,
+        366
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-navy-1024.png",
+      "bytes": 19914,
+      "sha256": "ae175be90cde55ece2f75e64a34db6a7c1ed8f144a2c3b5a76b2392af82ac8f8",
+      "dimensions": [
+        1024,
+        731
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-navy-128.png",
+      "bytes": 1799,
+      "sha256": "73b50b359b141e4b6bb8055c1d09d3ff774f73fd8de28b8b84755bbd4d2ce800",
+      "dimensions": [
+        128,
+        91
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-navy-2048.png",
+      "bytes": 55990,
+      "sha256": "31d8182458a1d82813e0aaf452d3ba6b3453178e22d96d1c50c6511ffc866d00",
+      "dimensions": [
+        2048,
+        1463
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-navy-256.png",
+      "bytes": 3488,
+      "sha256": "4c7a6512ca714f94fa3f113d9691220d63d9dfaeb34f1d3fd0373d5374e5f84c",
+      "dimensions": [
+        256,
+        183
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-mono-navy-512.png",
+      "bytes": 7880,
+      "sha256": "0e54d1701726b2603378d17d9a9b655bba48b3a18bbd8455663fa95a42a0871f",
+      "dimensions": [
+        512,
+        366
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-primary-1024.png",
+      "bytes": 19905,
+      "sha256": "050af2bf103b550ce13030945a65504b8557b6ba22eff57cd71fd094f2f5efcb",
+      "dimensions": [
+        1024,
+        731
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-primary-128.png",
+      "bytes": 1826,
+      "sha256": "12d14fb2a920e4abd5afb61420a28730928f8f9be894f7a07610c37d32de5b87",
+      "dimensions": [
+        128,
+        91
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-primary-2048.png",
+      "bytes": 56877,
+      "sha256": "e655a49b5917f453ab8d0a75012405006e1811cfe7542472b75520c12923de1d",
+      "dimensions": [
+        2048,
+        1463
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-primary-256.png",
+      "bytes": 3524,
+      "sha256": "d5bcd27543247bb37adad0780d42fd86e775f035c3d0220b1210690374f60a6b",
+      "dimensions": [
+        256,
+        183
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-primary-512.png",
+      "bytes": 7931,
+      "sha256": "44dfc17eada8f267848dffc10f350c645414eda18bb7e98ab1f497be2ec9bc71",
+      "dimensions": [
+        512,
+        366
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-reverse-white-1024.png",
+      "bytes": 15282,
+      "sha256": "a1ca12013487bb60cd375395cf9f3af9e5b078a738dccb03fe3cc6add01a76e8",
+      "dimensions": [
+        1024,
+        731
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-reverse-white-128.png",
+      "bytes": 1447,
+      "sha256": "30b96f81768db24be5fa55dfb1fcf34ea58a7235cdb7f92018e1925e5f50db29",
+      "dimensions": [
+        128,
+        91
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-reverse-white-2048.png",
+      "bytes": 42112,
+      "sha256": "681cb31b7b5a330aa081af029083a6162e50b0177471f2582084d6a0d33a8994",
+      "dimensions": [
+        2048,
+        1463
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-reverse-white-256.png",
+      "bytes": 2832,
+      "sha256": "91cc3d785f3450b63f04d1945697120233241a2203e8bab1b6c0bedceb024b32",
+      "dimensions": [
+        256,
+        183
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-stacked-reverse-white-512.png",
+      "bytes": 6414,
+      "sha256": "9ac022a5222b11b98b4a02179845edf1ed85d7c0cc02d802014cab49f6a3d289",
+      "dimensions": [
+        512,
+        366
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-black-128.png",
+      "bytes": 857,
+      "sha256": "74e36431bccd3caf45a6f534021d6c23c74b1b8070ddfaab4c78ee0513a4ac23",
+      "dimensions": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-black-24.png",
+      "bytes": 206,
+      "sha256": "2884a4343cbf3dac80604838eda89414713a3e93fdd9156294e644ab5bb8c25d",
+      "dimensions": [
+        24,
+        24
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-black-256.png",
+      "bytes": 2430,
+      "sha256": "691b4afef4ee1eaa042c52ce7cbd64527ece65af3a2f1de39bfc262e7dffa96e",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-black-512.png",
+      "bytes": 6444,
+      "sha256": "31e067b997001d35bd444613ac220991786b34598ac180c59c845bc368c5c9c4",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-black-64.png",
+      "bytes": 369,
+      "sha256": "a638214a1f8debd4dc5a202b614aaf868ed47546ebbffe9d202366f0708059fd",
+      "dimensions": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-navy-128.png",
+      "bytes": 985,
+      "sha256": "b6bd6a1f8510c161a317594057df8cfa0b802171892e850c3c2f0c57c6c06ab7",
+      "dimensions": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-navy-24.png",
+      "bytes": 241,
+      "sha256": "77e5ffb64f231e7ca10c8be8cbbbb2526e2d9d4b161d6b364285202058879666",
+      "dimensions": [
+        24,
+        24
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-navy-256.png",
+      "bytes": 2749,
+      "sha256": "7dc953d6766a317ce5f34cb23cfa947c09850eca5e973010498499116e61eaca",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-navy-512.png",
+      "bytes": 7124,
+      "sha256": "9d82e0cd9b47ee9432ec775edce452d93e59affe8803ad9534c413c097d6b3bd",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-mono-navy-64.png",
+      "bytes": 427,
+      "sha256": "325ddccf03826a10d2638af50f9fa33e064ca9377fd6b9cfab17b5ad2848754c",
+      "dimensions": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-primary-128.png",
+      "bytes": 1007,
+      "sha256": "0fb95b5c8066d3281b50dabc77bc9d45a6b3aa5966a0ac5fd820e0190b337e96",
+      "dimensions": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-primary-24.png",
+      "bytes": 248,
+      "sha256": "8e2034e3caec4dca5698792843d92aec5a322ef5ce31d6691a6484a4fa0f3f4a",
+      "dimensions": [
+        24,
+        24
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-primary-256.png",
+      "bytes": 2873,
+      "sha256": "08a3124603ac39952f584d147fe8dc5c174948d8ead5018806a647c1c8357d2e",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-primary-512.png",
+      "bytes": 8133,
+      "sha256": "ec4f756694ec0b274a9c53b7dd9c2a836f73df2e64bfc8a32800fbdc24f9d611",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-primary-64.png",
+      "bytes": 444,
+      "sha256": "7bfd95ae9601b3705bbfc99fb14c5d73971f9d3e6e2d432acb10205680a89dcd",
+      "dimensions": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-reverse-white-128.png",
+      "bytes": 781,
+      "sha256": "d45209995b494c02eb49c43a349f0fe2e2c06031f4b6c66f0a54c8f3be4f6267",
+      "dimensions": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-reverse-white-24.png",
+      "bytes": 207,
+      "sha256": "0c5e17af5941c6971bfec26f29733adac9f02444ea209a3d4d1800b965de20aa",
+      "dimensions": [
+        24,
+        24
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-reverse-white-256.png",
+      "bytes": 1860,
+      "sha256": "23d8daefd0a8a558270c9f939d1b4924fb6b2d052d9aa1a892518a2c025764b0",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-reverse-white-512.png",
+      "bytes": 4983,
+      "sha256": "246be87efa4427f8a17f510f3730e1cbc67cdbbc9df55ba7d73fb57340f2c0fe",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/lintara-symbol-reverse-white-64.png",
+      "bytes": 371,
+      "sha256": "e980b0c5bf2a784043d602655a98203b6c677c68442be9978898ba0214d7bc24",
+      "dimensions": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "svg/lintara-horizontal-mono-black.svg",
+      "bytes": 5392,
+      "sha256": "abc6942ea4e699b7fcb4f4b81aa33af2370c19aa4d8df4422fb96324475812fb",
+      "viewBox": "0 0 394 104",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-horizontal-mono-navy.svg",
+      "bytes": 5390,
+      "sha256": "d1480e6b9abf89275ac30fb8d1af371e693a98fd8f6daca6dd6bd937b9da1572",
+      "viewBox": "0 0 394 104",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-horizontal-primary.svg",
+      "bytes": 5386,
+      "sha256": "68cd1ebfd65b518301f92f38a6fcce95f603d83163ad571235a333ff8c524dc7",
+      "viewBox": "0 0 394 104",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-horizontal-reverse-white.svg",
+      "bytes": 5398,
+      "sha256": "712b0eed0e92290fb5d43553a0b2cc6a980bdeba56925104408cecf8b756f0f3",
+      "viewBox": "0 0 394 104",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-stacked-mono-black.svg",
+      "bytes": 4811,
+      "sha256": "dd6aafe433081a232e26527ea5a009254df0119c23f5e854dd7f7ce2771e189f",
+      "viewBox": "0 0 294 210",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-stacked-mono-navy.svg",
+      "bytes": 4809,
+      "sha256": "1988962848bb69e1c2cbf07f3cc15d6bed0d6fa378852a401d6b0b1d7669169c",
+      "viewBox": "0 0 294 210",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-stacked-primary.svg",
+      "bytes": 4805,
+      "sha256": "f63b0777220e0c506e0c6390ba652abe46f9d68ec0a2dbc9aae364f6fdefce25",
+      "viewBox": "0 0 294 210",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-stacked-reverse-white.svg",
+      "bytes": 4817,
+      "sha256": "121d2013bce390db92a99e030f28a44826367c39a39d68ebabb6e83f61211e52",
+      "viewBox": "0 0 294 210",
+      "paths": 9
+    },
+    {
+      "path": "svg/lintara-symbol-mono-black.svg",
+      "bytes": 345,
+      "sha256": "60076b7a8fa72bc4dedec6dcf0372eceb4e1b83df4ae2bc382435dfdc17e9b83",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    },
+    {
+      "path": "svg/lintara-symbol-mono-navy.svg",
+      "bytes": 343,
+      "sha256": "1cbc412932f404467077466652dd65b0062e86c1aae14c345be440fc43dc3f9f",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    },
+    {
+      "path": "svg/lintara-symbol-primary.svg",
+      "bytes": 339,
+      "sha256": "9c6f4b493c8606d3e576bcacdbe87655dfa7d6d1747788abe7cf43b068d814c4",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    },
+    {
+      "path": "svg/lintara-symbol-reverse-white.svg",
+      "bytes": 351,
+      "sha256": "16699ee14ae41e108210c49277059318ca42d75af02a4b4a2c4647473489f3cd",
+      "viewBox": "0 0 104 104",
+      "paths": 2
+    }
+  ],
+  "checks": {
+    "pathOnlySVG": true,
+    "transparentPNG": true,
+    "colorSource": "brand-tokens.json",
+    "originalSymbol": true,
+    "wordmarkOutlined": true
+  }
+}
